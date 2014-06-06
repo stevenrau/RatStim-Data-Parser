@@ -27,6 +27,8 @@ namespace excelParse
         private string outPath;
         private string inPath;
         private List<Entry> entries;
+        Dictionary<int, RatById> ratsById;
+        List<int> ratIds;
 
         /**
          * Constructor for the parseAndPrint class.
@@ -39,6 +41,11 @@ namespace excelParse
             inPath = input;
             outPath = output;
             entries = new List<Entry>();
+            ratsById = new Dictionary<int, RatById>();
+            ratIds = new List<int>();
+
+            getCsvEntries();
+            getRatsById();
         }
 
         /**
@@ -142,28 +149,6 @@ namespace excelParse
 
         public void printToExcelSorted()
         {
-            //Go throught the entry list and count the different rat IDs (store them in a list)
-            List<int> ratIds = new List<int>();
-            Dictionary<int, RatById> ratsById = new Dictionary<int, RatById>();
-            foreach (Entry curEntry in entries)
-            {
-                //If it's a new ID we havent seen yet...
-                if (!ratIds.Contains(curEntry.colH))
-                {
-                    //Add it to the id list
-                    ratIds.Add(curEntry.colH);
-                    //And make a new RatById entry to keep track of that rat's entries
-                    RatById newrat = new RatById(curEntry.colH);
-                    newrat.entries.Add(curEntry);
-                    ratsById.Add(newrat.id, newrat);
-                }
-                //Else just add the entry to the ratById entry with the corresponding ID 
-                else
-                {
-                    ratsById[curEntry.colH].entries.Add(curEntry);
-                }
-            }
-
             // Create the file using the FileInfo object
             var file = new FileInfo(outPath);
             if (file.Exists)
@@ -238,10 +223,37 @@ namespace excelParse
         }
 
         /**
-         * Method to get the entries from the csv input file and store them in 
-         * the entries list
+         * Stores entries with the same ID in a list within a RatById object which itself is
+         * stored in a dictionary along with other RatById objects for all the other IDs
          */
-        public void getCsvEntries()
+        private void getRatsById()
+        {
+            //Go throught the entry list and count the different rat IDs (store them in a list)
+            foreach (Entry curEntry in entries)
+            {
+                //If it's a new ID we havent seen yet...
+                if (!ratIds.Contains(curEntry.colH))
+                {
+                    //Add it to the id list
+                    ratIds.Add(curEntry.colH);
+                    //And make a new RatById entry to keep track of that rat's entries
+                    RatById newrat = new RatById(curEntry.colH);
+                    newrat.entries.Add(curEntry);
+                    ratsById.Add(newrat.id, newrat);
+                }
+                //Else just add the entry to the ratById entry with the corresponding ID 
+                else
+                {
+                    ratsById[curEntry.colH].entries.Add(curEntry);
+                }
+            }
+        }
+
+        /**
+         * Method to get the entries from the csv input file and store them in 
+         * the entries list. Should only need to be called once in the constructer
+         */
+        private void getCsvEntries()
         {
             //Start reading from the input file
             try

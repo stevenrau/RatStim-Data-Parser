@@ -111,10 +111,8 @@ namespace excelParse
         {
             ParseAndPrint myParser = new ParseAndPrint(this.inPathDisplay.Text, this.outPathDisplay.Text);
 
-            myParser.getCsvEntries();
-            myParser.printEntriesToText("output.txt");
             myParser.printToExcelSorted();
-            MessageBox.Show("Success!", "Success",
+            MessageBox.Show("Success! The ouput file was saved to the specified path.", "Success",
                              MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
         }
 
