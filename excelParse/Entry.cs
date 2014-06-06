@@ -10,8 +10,9 @@ namespace excelParse
      * This class is used to store table entries.
      * There are fields for each of the 10 fields we want to parse
      */
-    class Entry
+    class Entry : IComparable<Entry>
     {
+        //Fields fot the 10 fields we want to store for an entry
         public string colA;
         public string colB;
         public string colC;
@@ -22,5 +23,37 @@ namespace excelParse
         public int colH;
         public int colI;
         public int colM;
+
+        public Entry(string a, string b, string c, string d, string e, string f, string g, int h, int i, int m)
+        {
+            colA = a;
+            colB = b;
+            colC = c;
+            colD = d;
+            colE = e;
+            colF = f;
+            colG = g;
+            colH = h;
+            colI = i;
+            colM = m;
+        }
+
+        /**
+         * Create a custom toString method
+         */
+        public override string ToString()
+        {
+            string output = colA + " " + colB + " " + colC + " " + colD + " " + colE + " " +
+                            colF + " " + colG + " " + colH + " " + colI + " " + colM;
+            return output;
+        }
+
+        /*
+         * Custom comparison method that simply comares by rat ID for now
+         */
+        public int CompareTo(Entry compareEntry)
+        {
+            return this.colH.CompareTo(compareEntry.colH);
+        }
     }
 }

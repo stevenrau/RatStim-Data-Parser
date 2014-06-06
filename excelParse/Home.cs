@@ -102,7 +102,11 @@ namespace excelParse
         {
             ParseAndPrint myParser = new ParseAndPrint(this.inPathDisplay.Text, this.outPathDisplay.Text);
 
-            myParser.printToText("testOutput.txt");
+            myParser.getCsvEntries();
+            myParser.printEntriesToText("output.txt");
+            myParser.printToExcel();
+            MessageBox.Show("Success!", "Success",
+                             MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
         }
 
     }
