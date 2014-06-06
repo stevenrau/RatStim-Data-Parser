@@ -1,4 +1,13 @@
-﻿using System;
+﻿/**************************************************************************\
+Module Name:   Entry.cs 
+Project:       excelParse
+Author:        Steven Rau
+
+This file contains the Entry class. An entry is contained in a single row
+of info in the .csv input file.
+\***************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

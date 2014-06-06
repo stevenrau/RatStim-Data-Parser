@@ -1,4 +1,13 @@
-﻿using System;
+﻿/**************************************************************************\
+Module Name:   ParseAndPrint.cs 
+Project:       excelParse
+Author:        Steven Rau
+
+This file is used to parse in .csv files and output their contents to
+either .txt or .xlsx files
+\***************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,12 +24,9 @@ namespace excelParse
      */
     public class ParseAndPrint
     {
-        //We will be parsing .csv files with 17 columns
-        const int NUM_CSV_COLS = 17;
-
         private string outPath;
         private string inPath;
-        List<Entry> entries;
+        private List<Entry> entries;
 
         /**
          * Constructor for the parseAndPrint class.
@@ -91,7 +97,10 @@ namespace excelParse
 
         }
 
-        public void printToExcel()
+        /** Takes the csv entries and output them to an excel file at the
+         * path outPath, one entry per row
+         */
+        public void printToExcelUnsorted()
         {
             // Create the file using the FileInfo object
             var file = new FileInfo(outPath);
@@ -122,7 +131,81 @@ namespace excelParse
                 i++;
             }
 
+            //Resive the columns so that they fit nicely
+            for (i = 1; i <= worksheet.Dimension.End.Column; i++) 
+            { 
+                worksheet.Column(i).AutoFit(); 
+            }
+
             pck.Save();
+        }
+
+        public void printToExcelSorted()
+        {
+            //Go throught the entry list and count the different rat IDs (store them in a list)
+            List<int> ratIds = new List<int>();
+            Dictionary<int, RatById> ratsById = new Dictionary<int, RatById>();
+            foreach (Entry curEntry in entries)
+            {
+                //If it's a new ID we havent seen yet...
+                if (!ratIds.Contains(curEntry.colH))
+                {
+                    //Add it to the id list
+                    ratIds.Add(curEntry.colH);
+                    //And make a new RatById entry to keep track of that rat's entries
+                    RatById newrat = new RatById(curEntry.colH);
+                    newrat.entries.Add(curEntry);
+                    ratsById.Add(newrat.id, newrat);
+                }
+                //Else just add the entry to the ratById entry with the corresponding ID 
+                else
+                {
+                    ratsById[curEntry.colH].entries.Add(curEntry);
+                }
+            }
+
+            // Create the file using the FileInfo object
+            var file = new FileInfo(outPath);
+            if (file.Exists)
+            {
+                file.Delete();  // ensures we create a new workbook
+                file = new FileInfo(outPath);
+            }
+
+            //Create the Excel package and make a new workbook
+            ExcelPackage pck = new ExcelPackage(file);
+            ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add("Master");
+
+            int i = 1;
+            //For each rat ID #...
+            foreach(int ratId in ratIds)
+            {
+                //Print all of its corresponding entries
+                foreach(Entry curEntry in ratsById[ratId].entries)
+                {
+                    worksheet.Cells[i, 1].Value = curEntry.colA;
+                    worksheet.Cells[i, 2].Value = curEntry.colB;
+                    worksheet.Cells[i, 3].Value = curEntry.colC;
+                    worksheet.Cells[i, 4].Value = curEntry.colD;
+                    worksheet.Cells[i, 5].Value = curEntry.colE;
+                    worksheet.Cells[i, 6].Value = curEntry.colF;
+                    worksheet.Cells[i, 7].Value = curEntry.colG;
+                    worksheet.Cells[i, 8].Value = curEntry.colH;
+                    worksheet.Cells[i, 9].Value = curEntry.colI;
+                    worksheet.Cells[i, 10].Value = curEntry.colM;
+
+                    i++;
+                }
+                i++; //Leave a blank line between IDs
+            }
+
+            //Resive the columns so that they fit nicely
+            for (i = 1; i <= worksheet.Dimension.End.Column; i++) 
+            { 
+                worksheet.Column(i).AutoFit(); 
+            }
+
+            pck.Save(); //And save
         }
 
         /**
@@ -167,7 +250,8 @@ namespace excelParse
                 while (!reader.EndOfStream)
                 {
                     //Read in an entire line
-                    var line = reader.ReadLine();
+                    string line = reader.ReadLine();
+                    line.Replace("  ", "");
                     //Then split the values separated by a comma
                     var values = line.Split(',');
 

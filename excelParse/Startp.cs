@@ -1,4 +1,12 @@
-﻿using System;
+﻿/**************************************************************************\
+Module Name:   Startup.cs 
+Project:       excelParse
+Author:        Steven Rau
+
+The startup file for the project. Simply loads the main window.
+\***************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

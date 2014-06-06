@@ -1,4 +1,13 @@
-﻿using System;
+﻿/**************************************************************************\
+Module Name:   Home.cs 
+Project:       excelParse
+Author:        Steven Rau
+
+This file conatins the action listeners for the buttons/textfields, etc.
+on the Home window.
+\***************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -104,7 +113,7 @@ namespace excelParse
 
             myParser.getCsvEntries();
             myParser.printEntriesToText("output.txt");
-            myParser.printToExcel();
+            myParser.printToExcelSorted();
             MessageBox.Show("Success!", "Success",
                              MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
         }

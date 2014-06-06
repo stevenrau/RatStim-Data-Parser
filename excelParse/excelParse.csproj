@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="Home.cs">
       <SubType>Form</SubType>
@@ -55,6 +56,7 @@
       <DependentUpon>Home.cs</DependentUpon>
     </Compile>
     <Compile Include="ParseAndPrint.cs" />
+    <Compile Include="RatById.cs" />
     <Compile Include="Startp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringExtension.cs" />
