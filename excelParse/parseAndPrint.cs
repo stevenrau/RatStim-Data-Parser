@@ -162,26 +162,31 @@ namespace excelParse
             ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add("Master");
 
             int i = 1;
-            //For each rat ID #...
             foreach(int ratId in ratIds)
             {
-                //Print all of its corresponding entries
-                foreach(Entry curEntry in ratsById[ratId].entries)
+                foreach(string curStim in Constants.stims)
                 {
-                    worksheet.Cells[i, 1].Value = curEntry.colA;
-                    worksheet.Cells[i, 2].Value = curEntry.colB;
-                    worksheet.Cells[i, 3].Value = curEntry.colC;
-                    worksheet.Cells[i, 4].Value = curEntry.colD;
-                    worksheet.Cells[i, 5].Value = curEntry.colE;
-                    worksheet.Cells[i, 6].Value = curEntry.colF;
-                    worksheet.Cells[i, 7].Value = curEntry.colG;
-                    worksheet.Cells[i, 8].Value = curEntry.colH;
-                    worksheet.Cells[i, 9].Value = curEntry.colI;
-                    worksheet.Cells[i, 10].Value = curEntry.colM;
+                    foreach(Entry curEntry in ratsById[ratId].entries)
+                    {
+                        string entryStim = System.Text.RegularExpressions.Regex.Replace(curEntry.colG, @"\s+", "");
+                        if (curStim.CompareTo(entryStim) == 0)
+                        {
+                            worksheet.Cells[i, 1].Value = curEntry.colA;
+                            worksheet.Cells[i, 2].Value = curEntry.colB;
+                            worksheet.Cells[i, 3].Value = curEntry.colC;
+                            worksheet.Cells[i, 4].Value = curEntry.colD;
+                            worksheet.Cells[i, 5].Value = curEntry.colE;
+                            worksheet.Cells[i, 6].Value = curEntry.colF;
+                            worksheet.Cells[i, 7].Value = curEntry.colG;
+                            worksheet.Cells[i, 8].Value = curEntry.colH;
+                            worksheet.Cells[i, 9].Value = curEntry.colI;
+                            worksheet.Cells[i, 10].Value = curEntry.colM;
 
-                    i++;
+                            i++;
+                        }
+                    }
                 }
-                i++; //Leave a blank line between IDs
+                i++; //Advance one more row (leave a blank row between rat #s)
             }
 
             //Resive the columns so that they fit nicely
