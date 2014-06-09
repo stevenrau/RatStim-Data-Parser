@@ -42,9 +42,10 @@
             this.browseLabel = new System.Windows.Forms.Label();
             this.saveAsLabel = new System.Windows.Forms.Label();
             this.outPathDisplay = new System.Windows.Forms.TextBox();
-            this.inPathDisplay = new System.Windows.Forms.TextBox();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.sortButton = new System.Windows.Forms.Button();
+            this.inPathDisplay = new System.Windows.Forms.TextBox();
+            this.clearInputsFilesButton = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -74,7 +75,7 @@
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -82,7 +83,7 @@
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.exitToolStripMenuItem.Text = "&Quit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -98,19 +99,20 @@
             // readmeToolStripMenuItem
             // 
             this.readmeToolStripMenuItem.Name = "readmeToolStripMenuItem";
-            this.readmeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.readmeToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
             this.readmeToolStripMenuItem.Text = "README";
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
             this.aboutToolStripMenuItem.Text = "About";
             // 
             // openFileDialog
             // 
             this.openFileDialog.Filter = "CSV Files|*.csv";
             this.openFileDialog.InitialDirectory = "%HOMEDRIVE%%HOMEPATH%";
+            this.openFileDialog.Multiselect = true;
             this.openFileDialog.Title = "Choose input file";
             // 
             // browse
@@ -125,7 +127,7 @@
             // 
             // saveAs
             // 
-            this.saveAs.Location = new System.Drawing.Point(143, 114);
+            this.saveAs.Location = new System.Drawing.Point(143, 210);
             this.saveAs.Name = "saveAs";
             this.saveAs.Size = new System.Drawing.Size(137, 35);
             this.saveAs.TabIndex = 2;
@@ -139,15 +141,15 @@
             this.browseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.browseLabel.Location = new System.Drawing.Point(12, 67);
             this.browseLabel.Name = "browseLabel";
-            this.browseLabel.Size = new System.Drawing.Size(115, 20);
+            this.browseLabel.Size = new System.Drawing.Size(123, 20);
             this.browseLabel.TabIndex = 3;
-            this.browseLabel.Text = "Input file (.csv):";
+            this.browseLabel.Text = "Input files (.csv):";
             // 
             // saveAsLabel
             // 
             this.saveAsLabel.AutoSize = true;
             this.saveAsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.saveAsLabel.Location = new System.Drawing.Point(12, 120);
+            this.saveAsLabel.Location = new System.Drawing.Point(12, 216);
             this.saveAsLabel.Name = "saveAsLabel";
             this.saveAsLabel.Size = new System.Drawing.Size(129, 20);
             this.saveAsLabel.TabIndex = 4;
@@ -155,19 +157,13 @@
             // 
             // outPathDisplay
             // 
-            this.outPathDisplay.Location = new System.Drawing.Point(300, 122);
+            this.outPathDisplay.BackColor = System.Drawing.SystemColors.Info;
+            this.outPathDisplay.Location = new System.Drawing.Point(300, 218);
+            this.outPathDisplay.Multiline = true;
             this.outPathDisplay.Name = "outPathDisplay";
             this.outPathDisplay.ReadOnly = true;
-            this.outPathDisplay.Size = new System.Drawing.Size(321, 20);
+            this.outPathDisplay.Size = new System.Drawing.Size(321, 70);
             this.outPathDisplay.TabIndex = 6;
-            // 
-            // inPathDisplay
-            // 
-            this.inPathDisplay.Location = new System.Drawing.Point(300, 69);
-            this.inPathDisplay.Name = "inPathDisplay";
-            this.inPathDisplay.ReadOnly = true;
-            this.inPathDisplay.Size = new System.Drawing.Size(321, 20);
-            this.inPathDisplay.TabIndex = 7;
             // 
             // saveFileDialog
             // 
@@ -178,7 +174,7 @@
             // sortButton
             // 
             this.sortButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.sortButton.Location = new System.Drawing.Point(456, 173);
+            this.sortButton.Location = new System.Drawing.Point(456, 310);
             this.sortButton.Name = "sortButton";
             this.sortButton.Size = new System.Drawing.Size(165, 35);
             this.sortButton.TabIndex = 8;
@@ -186,11 +182,33 @@
             this.sortButton.UseVisualStyleBackColor = true;
             this.sortButton.Click += new System.EventHandler(this.sortButton_Click);
             // 
+            // inPathDisplay
+            // 
+            this.inPathDisplay.BackColor = System.Drawing.SystemColors.Info;
+            this.inPathDisplay.Location = new System.Drawing.Point(300, 61);
+            this.inPathDisplay.Multiline = true;
+            this.inPathDisplay.Name = "inPathDisplay";
+            this.inPathDisplay.ReadOnly = true;
+            this.inPathDisplay.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.inPathDisplay.Size = new System.Drawing.Size(321, 133);
+            this.inPathDisplay.TabIndex = 7;
+            // 
+            // clearInputsFilesButton
+            // 
+            this.clearInputsFilesButton.Location = new System.Drawing.Point(143, 114);
+            this.clearInputsFilesButton.Name = "clearInputsFilesButton";
+            this.clearInputsFilesButton.Size = new System.Drawing.Size(137, 35);
+            this.clearInputsFilesButton.TabIndex = 9;
+            this.clearInputsFilesButton.Text = "Clear input files";
+            this.clearInputsFilesButton.UseVisualStyleBackColor = true;
+            this.clearInputsFilesButton.Click += new System.EventHandler(this.clearInputsFilesButton_Click);
+            // 
             // Home
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(645, 238);
+            this.ClientSize = new System.Drawing.Size(645, 367);
+            this.Controls.Add(this.clearInputsFilesButton);
             this.Controls.Add(this.sortButton);
             this.Controls.Add(this.inPathDisplay);
             this.Controls.Add(this.outPathDisplay);
@@ -199,11 +217,11 @@
             this.Controls.Add(this.saveAs);
             this.Controls.Add(this.browse);
             this.Controls.Add(this.menuStrip1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(661, 272);
+            this.MaximumSize = new System.Drawing.Size(1920, 1080);
             this.MinimumSize = new System.Drawing.Size(661, 272);
             this.Name = "Home";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -231,9 +249,10 @@
         private System.Windows.Forms.Label browseLabel;
         private System.Windows.Forms.Label saveAsLabel;
         private System.Windows.Forms.TextBox outPathDisplay;
-        private System.Windows.Forms.TextBox inPathDisplay;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.Button sortButton;
+        private System.Windows.Forms.TextBox inPathDisplay;
+        private System.Windows.Forms.Button clearInputsFilesButton;
     }
 }
 

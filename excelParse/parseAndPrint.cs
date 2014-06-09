@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
@@ -25,7 +24,8 @@ namespace excelParse
     public class ParseAndPrint
     {
         private string outPath;
-        private string inPath;
+        private List<string> inPaths;
+        private int inPathCount;
         private List<Entry> entries;
         Dictionary<int, RatById> ratsById;
         List<int> ratIds;
@@ -33,12 +33,13 @@ namespace excelParse
         /**
          * Constructor for the parseAndPrint class.
          * 
-         * @param input  String representation of the input path
+         * @param input  List of string representations of the input paths
          *        output String representation of the output path
          */
-        public ParseAndPrint(string input, string output)
+        public ParseAndPrint(List<string> input, int numInPaths, string output)
         {
-            inPath = input;
+            inPaths = new List<string>(input);
+            inPathCount = numInPaths;
             outPath = output;
             entries = new List<Entry>();
             ratsById = new Dictionary<int, RatById>();
@@ -62,7 +63,7 @@ namespace excelParse
             //Start reading from the input file
             try
             {
-                var reader = new StreamReader(File.OpenRead(inPath));
+                var reader = new StreamReader(File.OpenRead(inPaths.First()));
                 while (!reader.EndOfStream)
                 {
                     //Read in an entire line
@@ -94,7 +95,7 @@ namespace excelParse
             }
             catch (IOException )
             {
-                MessageBox.Show(inPath+" is currently in use by another process. Close it to continue.", "Error",
+                MessageBox.Show(inPaths.First()+" is currently in use by another process. Close it to continue.", "Error",
                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             finally
@@ -196,6 +197,8 @@ namespace excelParse
             }
 
             pck.Save(); //And save
+
+            System.Diagnostics.Process.Start(outPath);
         }
 
         /**
@@ -217,7 +220,7 @@ namespace excelParse
             }
             catch (IOException)
             {
-                MessageBox.Show(inPath + " is currently in use by another process. Close it to continue.", "Error",
+                MessageBox.Show(inPaths.First() + " is currently in use by another process. Close it to continue.", "Error",
                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             finally
@@ -263,7 +266,7 @@ namespace excelParse
             //Start reading from the input file
             try
             {
-                var reader = new StreamReader(File.OpenRead(inPath));
+                var reader = new StreamReader(File.OpenRead(inPaths.First()));
                 while (!reader.EndOfStream)
                 {
                     //Read in an entire line
@@ -280,22 +283,11 @@ namespace excelParse
             }
             catch (IOException)
             {
-                MessageBox.Show(inPath + " is currently in use by another process. Close it to continue.", "Error",
+                MessageBox.Show(inPaths.First() + " is currently in use by another process. Close it to continue.", "Error",
                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             entries.Sort();
         }
-
-        public string getInputPath()
-        {
-            return inPath;
-        }
-
-        public string getOutputPath()
-        {
-            return outPath;
-        }
-
     }
 }

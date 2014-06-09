@@ -14,7 +14,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 
@@ -22,8 +21,15 @@ namespace excelParse
 {
     public partial class Home : Form
     {
+        //A list to store all the input csv paths to pass to ParseAndPrint when the Sort button is clicked
+        public List<string> inPaths;
+        //A count of input files. Used for ouput list numbering and to pass to ParseAndPrint
+        public int inPathCount;
+
         public Home()
         {
+            inPaths = new List<string>();
+            inPathCount = 0;
             InitializeComponent();
         }
 
@@ -69,9 +75,24 @@ namespace excelParse
                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     Browse_Click(sender, e);
                 }
-                //Display the path in the text box
-                this.inPathDisplay.Text = openFileDialog.FileName;
+                //Display the inputs paths in the text box
+                foreach(string curFileName in openFileDialog.FileNames)
+                {
+                    inPathCount++;
+                    inPathDisplay.Text += inPathCount + ") " + curFileName + Environment.NewLine + Environment.NewLine;
+                    inPaths.Add(curFileName);
+                }
             }
+        }
+
+        /** 
+         * Button click to clear all of the input files that were previously selected
+         */
+        private void clearInputsFilesButton_Click(object sender, EventArgs e)
+        {
+            inPathCount = 0;
+            inPaths.Clear();
+            inPathDisplay.Text = "";
         }
 
         /**
@@ -109,12 +130,11 @@ namespace excelParse
 
         private void sortButton_Click(object sender, EventArgs e)
         {
-            ParseAndPrint myParser = new ParseAndPrint(this.inPathDisplay.Text, this.outPathDisplay.Text);
+            ParseAndPrint myParser = new ParseAndPrint(inPaths, inPathCount, this.outPathDisplay.Text);
 
             myParser.printToExcelSorted();
             MessageBox.Show("Success! The ouput file was saved to the specified path.", "Success",
                              MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
         }
-
     }
 }
