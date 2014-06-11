@@ -75,7 +75,7 @@
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -83,7 +83,7 @@
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Q)));
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exitToolStripMenuItem.Text = "&Quit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -117,6 +117,7 @@
             // 
             // browse
             // 
+            this.browse.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.browse.Location = new System.Drawing.Point(143, 61);
             this.browse.Name = "browse";
             this.browse.Size = new System.Drawing.Size(137, 35);
@@ -127,6 +128,7 @@
             // 
             // saveAs
             // 
+            this.saveAs.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.saveAs.Location = new System.Drawing.Point(143, 210);
             this.saveAs.Name = "saveAs";
             this.saveAs.Size = new System.Drawing.Size(137, 35);
@@ -138,20 +140,20 @@
             // browseLabel
             // 
             this.browseLabel.AutoSize = true;
-            this.browseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.browseLabel.Font = new System.Drawing.Font("Calibri", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.browseLabel.Location = new System.Drawing.Point(12, 67);
             this.browseLabel.Name = "browseLabel";
-            this.browseLabel.Size = new System.Drawing.Size(123, 20);
+            this.browseLabel.Size = new System.Drawing.Size(124, 21);
             this.browseLabel.TabIndex = 3;
             this.browseLabel.Text = "Input files (.csv):";
             // 
             // saveAsLabel
             // 
             this.saveAsLabel.AutoSize = true;
-            this.saveAsLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.saveAsLabel.Location = new System.Drawing.Point(12, 216);
+            this.saveAsLabel.Font = new System.Drawing.Font("Calibri", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.saveAsLabel.Location = new System.Drawing.Point(3, 216);
             this.saveAsLabel.Name = "saveAsLabel";
-            this.saveAsLabel.Size = new System.Drawing.Size(129, 20);
+            this.saveAsLabel.Size = new System.Drawing.Size(133, 21);
             this.saveAsLabel.TabIndex = 4;
             this.saveAsLabel.Text = "Output file (.xlsx):";
             // 
@@ -173,7 +175,7 @@
             // 
             // sortButton
             // 
-            this.sortButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.sortButton.Font = new System.Drawing.Font("Calibri", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sortButton.Location = new System.Drawing.Point(456, 310);
             this.sortButton.Name = "sortButton";
             this.sortButton.Size = new System.Drawing.Size(165, 35);
@@ -195,6 +197,7 @@
             // 
             // clearInputsFilesButton
             // 
+            this.clearInputsFilesButton.Font = new System.Drawing.Font("Calibri", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clearInputsFilesButton.Location = new System.Drawing.Point(143, 114);
             this.clearInputsFilesButton.Name = "clearInputsFilesButton";
             this.clearInputsFilesButton.Size = new System.Drawing.Size(137, 35);
@@ -217,6 +220,7 @@
             this.Controls.Add(this.saveAs);
             this.Controls.Add(this.browse);
             this.Controls.Add(this.menuStrip1);
+            this.ForeColor = System.Drawing.SystemColors.ControlText;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
@@ -225,7 +229,7 @@
             this.MinimumSize = new System.Drawing.Size(661, 272);
             this.Name = "Home";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Excel Parser";
+            this.Text = "RatStim Data Parser";
             this.Load += new System.EventHandler(this.Home_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();

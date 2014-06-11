@@ -7,14 +7,14 @@
     <ProjectGuid>{EE48273C-2840-4B42-B00E-58444AE84B9B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>excelParse</RootNamespace>
-    <AssemblyName>excelParse</AssemblyName>
+    <RootNamespace>RatStim</RootNamespace>
+    <AssemblyName>RatStim Data Parser</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
-    <PublishUrl>excelParser_0.3\</PublishUrl>
+    <PublishUrl>RatStim_0.3\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -64,7 +64,7 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>micro.ico</ApplicationIcon>
+    <ApplicationIcon>parseIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EPPlus">
@@ -138,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="micro.ico" />
+    <Content Include="parseIcon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
