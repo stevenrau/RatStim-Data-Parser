@@ -13,15 +13,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace excelParse
+namespace RatStim
 {
     class RatById
     {
 
         public List<Entry> entries;
-        public int id;
+        public string id;
 
-        public RatById(int newId)
+        public RatById(string newId)
         {
             id = newId;
             entries = new List<Entry>();

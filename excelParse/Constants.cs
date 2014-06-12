@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace excelParse
+namespace RatStim
 {
     public static class Constants
     {

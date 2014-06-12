@@ -17,7 +17,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 
-namespace excelParse
+namespace RatStim
 {
     public partial class Home : Form
     {
@@ -133,8 +133,9 @@ namespace excelParse
             ParseAndPrint myParser = new ParseAndPrint(inPaths, inPathCount, this.outPathDisplay.Text);
 
             myParser.printToExcelSorted();
-            MessageBox.Show("Success! The ouput file was saved to the specified path.", "Success",
-                             MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+
+            SuccessWindow successWindow = new SuccessWindow(this.outPathDisplay.Text);
+            successWindow.Show();
         }
     }
 }

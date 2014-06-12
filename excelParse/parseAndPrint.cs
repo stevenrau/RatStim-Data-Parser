@@ -16,7 +16,7 @@ using System.IO;
 using System.Windows.Forms;
 using OfficeOpenXml;
 
-namespace excelParse
+namespace RatStim
 {
     /*
      * This class is used to read in CSV or Excel files and parse them
@@ -27,14 +27,15 @@ namespace excelParse
         private List<string> inPaths;
         private int inPathCount;
         private List<Entry> entries;
-        Dictionary<int, RatById> ratsById;
-        List<int> ratIds;
+        Dictionary<string, RatById> ratsById;
+        List<string> ratIds;
 
         /**
          * Constructor for the parseAndPrint class.
          * 
-         * @param input  List of string representations of the input paths
-         *        output String representation of the output path
+         * @param input     List of string representations of the input paths
+         *        numPaths  The number of input files provided
+         *        output    String representation of the output path
          */
         public ParseAndPrint(List<string> input, int numInPaths, string output)
         {
@@ -42,8 +43,8 @@ namespace excelParse
             inPathCount = numInPaths;
             outPath = output;
             entries = new List<Entry>();
-            ratsById = new Dictionary<int, RatById>();
-            ratIds = new List<int>();
+            ratsById = new Dictionary<string, RatById>();
+            ratIds = new List<string>();
 
             getCsvEntries();
             getRatsById();
@@ -53,7 +54,7 @@ namespace excelParse
          * Prints the important values from the .csv input file to a specified text file
          * Mainly used for testing and debugging. Shouldn't be used in the final product.
          * 
-         * @param output  String representation of the ouotput file. Needs to be a text file.
+         * @param output  String representation of the output file. Needs to be a text file.
          */
         public void printCsvToText(string output)
         {
@@ -105,7 +106,8 @@ namespace excelParse
 
         }
 
-        /** Takes the csv entries and output them to an excel file at the
+        /** 
+         * Takes the csv entries and output them to an excel file at the
          * path outPath, one entry per row
          */
         public void printToExcelUnsorted()
@@ -148,6 +150,10 @@ namespace excelParse
             pck.Save();
         }
 
+        /**
+         * Prints the entries to an excel file sorted by rat ID, with avgs calculated
+         * for each stimulus
+         */
         public void printToExcelSorted()
         {
             // Create the file using the FileInfo object
@@ -163,7 +169,7 @@ namespace excelParse
             ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add("Master");
 
             int i = 1;
-            foreach(int ratId in ratIds)
+            foreach(string ratId in ratIds)
             {
                 foreach(string curStim in Constants.stims)
                 {
@@ -198,7 +204,6 @@ namespace excelParse
 
             pck.Save(); //And save
 
-            System.Diagnostics.Process.Start(outPath);
         }
 
         /**
@@ -237,57 +242,70 @@ namespace excelParse
         private void getRatsById()
         {
             //Go throught the entry list and count the different rat IDs (store them in a list)
+            //colD is the rat ID column, in string form. ex: 'A2L1f1'
             foreach (Entry curEntry in entries)
             {
                 //If it's a new ID we havent seen yet...
-                if (!ratIds.Contains(curEntry.colH))
+                if (!ratIds.Contains(curEntry.colD))
                 {
                     //Add it to the id list
-                    ratIds.Add(curEntry.colH);
+                    ratIds.Add(curEntry.colD);
                     //And make a new RatById entry to keep track of that rat's entries
-                    RatById newrat = new RatById(curEntry.colH);
+                    RatById newrat = new RatById(curEntry.colD);
                     newrat.entries.Add(curEntry);
                     ratsById.Add(newrat.id, newrat);
                 }
                 //Else just add the entry to the ratById entry with the corresponding ID 
                 else
                 {
-                    ratsById[curEntry.colH].entries.Add(curEntry);
+                    ratsById[curEntry.colD].entries.Add(curEntry);
                 }
             }
         }
 
         /**
-         * Method to get the entries from the csv input file and store them in 
+         * Method to get the entries from the csv input files and store them in 
          * the entries list. Should only need to be called once in the constructer
          */
         private void getCsvEntries()
         {
-            //Start reading from the input file
-            try
+            //Read through each one of the input files
+            foreach (string curInPath in inPaths)
             {
-                var reader = new StreamReader(File.OpenRead(inPaths.First()));
-                while (!reader.EndOfStream)
+                Debug.WriteLine("HERE");
+                try
                 {
-                    //Read in an entire line
-                    string line = reader.ReadLine();
-                    line.Replace("  ", "");
-                    //Then split the values separated by a comma
-                    var values = line.Split(',');
+                    var reader = new StreamReader(File.OpenRead(curInPath));
+                    while (!reader.EndOfStream)
+                    {
+                        //Read in an entire line
+                        string line = reader.ReadLine();
+                        line.Replace("  ", "");
+                        //Then split the values separated by a comma
+                        var values = line.Split(',');
 
-                    //Make a new Entry object for this entry, then add it to the list
-                    Entry newEntry = new Entry(values[0], values[1], values[2], values[3], values[4], values[5], values[6],  
-                                               Convert.ToInt32(values[7]), Convert.ToInt32(values[8]), Convert.ToInt32(values[12]));
-                    entries.Add(newEntry);
+                        //Make a new Entry object for this entry, then add it to the list
+                        Entry newEntry = new Entry(values[0], values[1], values[2], values[3], values[4], values[5], values[6],
+                                                   Convert.ToInt32(values[7]), Convert.ToInt32(values[8]), Convert.ToInt32(values[12]));
+                        entries.Add(newEntry);
+                    }
                 }
-            }
-            catch (IOException)
-            {
-                MessageBox.Show(inPaths.First() + " is currently in use by another process. Close it to continue.", "Error",
-                             MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+                catch (IOException)
+                {
+                    MessageBox.Show(inPaths.First() + " is currently in use by another process. Close it to continue.", "Error",
+                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
 
-            entries.Sort();
+                entries.Sort();
+            }
+        }
+
+        /**
+         * Returns the string representation of the output file path
+         */
+        public string getOutPath()
+        {
+            return outPath;
         }
     }
 }
