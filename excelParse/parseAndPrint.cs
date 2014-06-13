@@ -29,6 +29,7 @@ namespace RatStim
         private List<Entry> entries;
         Dictionary<string, RatById> ratsById;
         List<string> ratIds;
+        List<double> avgs;
 
         /**
          * Constructor for the parseAndPrint class.
@@ -45,6 +46,7 @@ namespace RatStim
             entries = new List<Entry>();
             ratsById = new Dictionary<string, RatById>();
             ratIds = new List<string>();
+            avgs = new List<double>();
 
             getCsvEntries();
             getRatsById();
@@ -173,6 +175,11 @@ namespace RatStim
             {
                 foreach(string curStim in Constants.stims)
                 {
+                    //The variables used to calculates averages for each stimulus
+                    double curSum = 0;
+                    int entryCnt = 0;
+                    double curAvg = 0;
+
                     foreach(Entry curEntry in ratsById[ratId].entries)
                     {
                         string entryStim = System.Text.RegularExpressions.Regex.Replace(curEntry.colG, @"\s+", "");
@@ -188,22 +195,43 @@ namespace RatStim
                             worksheet.Cells[i, 8].Value = curEntry.colH;
                             worksheet.Cells[i, 9].Value = curEntry.colI;
                             worksheet.Cells[i, 10].Value = curEntry.colM;
+                            
+                            //Keep track of the avg of this set of entries with common stimulus
+                            curSum += curEntry.colM;
+                            entryCnt++;
 
                             i++;
                         }
                     }
+
+                    //Then print the avg 
+                    curAvg = curSum / entryCnt;
+                    worksheet.Cells[i - 1, 11].Value = curAvg;
+                    //And add it to the avg list to be used in std deviation calculation
+                    avgs.Add(curAvg);
                 }
                 i++; //Advance one more row (leave a blank row between rat #s)
             }
 
-            //Resive the columns so that they fit nicely
-            for (i = 1; i <= worksheet.Dimension.End.Column; i++) 
-            { 
-                worksheet.Column(i).AutoFit(); 
-            }
+            resizeCols(worksheet);
 
             pck.Save(); //And save
 
+        }
+
+        /**
+         * Resizes the columns of an excel worksheet so that they are sized appropriately
+         * to their contents
+         * 
+         * @param  worksheet  The Excel worksheet we want to resize columns on
+         */
+        public void resizeCols(ExcelWorksheet worksheet)
+        {
+            //Resive the columns so that they fit nicely
+            for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+            {
+                worksheet.Column(i).AutoFit();
+            }
         }
 
         /**
@@ -261,6 +289,12 @@ namespace RatStim
                     ratsById[curEntry.colD].entries.Add(curEntry);
                 }
             }
+
+            //Sort each RatById's list of entries by trial # so that they are printed in order
+            foreach (string curRatId in ratIds)
+            {
+               // ratsById[curRatId].entries.Sort();
+            }
         }
 
         /**
@@ -272,7 +306,6 @@ namespace RatStim
             //Read through each one of the input files
             foreach (string curInPath in inPaths)
             {
-                Debug.WriteLine("HERE");
                 try
                 {
                     var reader = new StreamReader(File.OpenRead(curInPath));
@@ -287,6 +320,7 @@ namespace RatStim
                         //Make a new Entry object for this entry, then add it to the list
                         Entry newEntry = new Entry(values[0], values[1], values[2], values[3], values[4], values[5], values[6],
                                                    Convert.ToInt32(values[7]), Convert.ToInt32(values[8]), Convert.ToInt32(values[12]));
+
                         entries.Add(newEntry);
                     }
                 }

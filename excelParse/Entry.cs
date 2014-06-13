@@ -57,11 +57,11 @@ namespace RatStim
         }
 
         /*
-         * Custom comparison method that simply comares by rat ID for now
+         * Custom comparison method that simply compares rats by trial # for now
          */
         public int CompareTo(Entry compareEntry)
         {
-            return this.colH.CompareTo(compareEntry.colH);
+            return this.colI.CompareTo(compareEntry.colI);
         }
     }
 }
