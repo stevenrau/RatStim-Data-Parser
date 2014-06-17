@@ -136,7 +136,7 @@ namespace RatStim
             int i = 1;
             foreach(string ratId in ratIds)
             {
-                foreach(string curStim in Constants.stims)
+                foreach(string curStim in ratStims)
                 {
                     //The variables used to calculates averages for each stimulus
                     double curSum = 0;
@@ -146,7 +146,8 @@ namespace RatStim
 
                     foreach(Entry curEntry in ratsById[ratId].entries)
                     {
-                        string entryStim = System.Text.RegularExpressions.Regex.Replace(curEntry.colG, @"\s+", "");
+                        //string entryStim = System.Text.RegularExpressions.Regex.Replace(curEntry.colG, @"\s+", "");
+                        string entryStim = curEntry.colG;
                         if (curStim.CompareTo(entryStim) == 0)
                         {
                             worksheet.Cells[i, 1].Value = curEntry.colA;
@@ -298,6 +299,12 @@ namespace RatStim
                 {
                     ratsById[curEntry.colD].entries.Add(curEntry);
                 }
+
+                //If it's a new stimulus we haven't seen yet, add it to the stim list
+                if (!ratStims.Contains(curEntry.colG))
+                {
+                    ratStims.Add(curEntry.colG);
+                }
             }
 
             //Sort each RatById's list of entries by trial # so that they are printed in order
@@ -305,6 +312,9 @@ namespace RatStim
             {
                // ratsById[curRatId].entries.Sort();
             }
+
+            //Then sorth the ratStim values so that they are alpahbetical
+            ratStims.Sort();
         }
 
         /**
