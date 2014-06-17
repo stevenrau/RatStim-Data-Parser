@@ -20,7 +20,7 @@ namespace RatStim
      */
     class Entry : IComparable<Entry>
     {
-        //Fields fot the 10 fields we want to store for an entry
+        //Fields for the 10 fields we want to store for an entry
         public string colA;
         public string colB;
         public string colC;

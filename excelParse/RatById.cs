@@ -17,9 +17,8 @@ namespace RatStim
 {
     class RatById
     {
-
-        public List<Entry> entries;
-        public string id;
+        public List<Entry> entries; //A list of entries for each unique rat ID
+        public string id;           //The unique rat ID
 
         public RatById(string newId)
         {

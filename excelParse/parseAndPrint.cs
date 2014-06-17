@@ -23,13 +23,14 @@ namespace RatStim
      */
     public class ParseAndPrint
     {
-        private string outPath;
-        private List<string> inPaths;
-        private int inPathCount;
-        private List<Entry> entries;
-        Dictionary<string, RatById> ratsById;
-        List<string> ratIds;
-        List<double> avgs;
+        private string outPath;               //String representation of the output path
+        private List<string> inPaths;         //List of all the input csv file paths
+        private int inPathCount;              //The number of input files
+        private List<Entry> entries;          //A list to keep track of all the entries read in from the input csv files
+        Dictionary<string, RatById> ratsById; //Each unique rat ID gets an entry in this dictionary with all of its entries
+        List<string> ratIds;                  //A list of all he unique rat IDs
+        List<double> avgs;                    //A list of the averages for each stimulus group for each rat ID
+        List<string> ratStims;                //A list of all the stimulus values for the rats being entered
 
         /**
          * Constructor for the parseAndPrint class.
@@ -47,6 +48,7 @@ namespace RatStim
             ratsById = new Dictionary<string, RatById>();
             ratIds = new List<string>();
             avgs = new List<double>();
+            ratStims = new List<string>();
 
             getCsvEntries();
             getRatsById();
@@ -108,58 +110,19 @@ namespace RatStim
 
         }
 
-        /** 
-         * Takes the csv entries and output them to an excel file at the
-         * path outPath, one entry per row
-         */
-        public void printToExcelUnsorted()
-        {
-            // Create the file using the FileInfo object
-            var file = new FileInfo(outPath);
-            if (file.Exists)
-            {
-                file.Delete();  // ensures we create a new workbook
-                file = new FileInfo(outPath);
-            }
-
-            //Create the Excel package and make a new workbook
-            ExcelPackage pck = new ExcelPackage(file);
-            ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add("Master");
-
-            int i = 1;
-            foreach (Entry curEntry in entries)
-            {
-                worksheet.Cells[i, 1].Value = curEntry.colA;
-                worksheet.Cells[i, 2].Value = curEntry.colB;
-                worksheet.Cells[i, 3].Value = curEntry.colC;
-                worksheet.Cells[i, 4].Value = curEntry.colD;
-                worksheet.Cells[i, 5].Value = curEntry.colE;
-                worksheet.Cells[i, 6].Value = curEntry.colF;
-                worksheet.Cells[i, 7].Value = curEntry.colG;
-                worksheet.Cells[i, 8].Value = curEntry.colH;
-                worksheet.Cells[i, 9].Value = curEntry.colI;
-                worksheet.Cells[i, 10].Value = curEntry.colM;
-
-                i++;
-            }
-
-            //Resive the columns so that they fit nicely
-            for (i = 1; i <= worksheet.Dimension.End.Column; i++) 
-            { 
-                worksheet.Column(i).AutoFit(); 
-            }
-
-            pck.Save();
-        }
-
         /**
          * Prints the entries to an excel file sorted by rat ID, with avgs calculated
          * for each stimulus
          */
-        public void printToExcelSorted()
+        public void printIntermediateData()
         {
             // Create the file using the FileInfo object
-            var file = new FileInfo(outPath);
+            string fileName = Path.GetFileName(outPath);
+            string extraDirectoryPath = Path.GetDirectoryName(outPath) + "/" + Path.GetFileNameWithoutExtension(outPath) + "_INTERMEDIATE_DATA";
+            Directory.CreateDirectory(extraDirectoryPath);
+            extraDirectoryPath += "/intermediate_" + fileName;
+
+            var file = new FileInfo(extraDirectoryPath);
             if (file.Exists)
             {
                 file.Delete();  // ensures we create a new workbook
@@ -179,6 +142,7 @@ namespace RatStim
                     double curSum = 0;
                     int entryCnt = 0;
                     double curAvg = 0;
+                    int p120Cnt = 0;
 
                     foreach(Entry curEntry in ratsById[ratId].entries)
                     {
@@ -200,15 +164,41 @@ namespace RatStim
                             curSum += curEntry.colM;
                             entryCnt++;
 
+                            if (curStim.CompareTo("p120") == 0)
+                            {
+                                //If we are on our 6th p120 in a row
+                                if (p120Cnt == 5)
+                                {
+                                    //Then print the avg 
+                                    curAvg = curSum / entryCnt;
+                                    worksheet.Cells[i - 1, 11].Value = curAvg;
+                                    //And add it to the avg list to be used in std deviation calculation
+                                    avgs.Add(curAvg);
+
+                                    //Reset the counting vals
+                                    curSum = 0;
+                                    entryCnt = 0;
+                                    p120Cnt = 0;
+                                }
+                                else
+                                {
+                                    p120Cnt++;
+                                }
+                            }
+
                             i++;
                         }
                     }
 
-                    //Then print the avg 
-                    curAvg = curSum / entryCnt;
-                    worksheet.Cells[i - 1, 11].Value = curAvg;
-                    //And add it to the avg list to be used in std deviation calculation
-                    avgs.Add(curAvg);
+                    //Since the p120's have already been printed, don't re-print them
+                    if (curStim.CompareTo("p120") != 0)
+                    {
+                        //Print the avg 
+                        curAvg = curSum / entryCnt;
+                        worksheet.Cells[i - 1, 11].Value = curAvg;
+                        //And add it to the avg list to be used in std deviation calculation
+                        avgs.Add(curAvg);
+                    }
                 }
                 i++; //Advance one more row (leave a blank row between rat #s)
             }
@@ -217,6 +207,26 @@ namespace RatStim
 
             pck.Save(); //And save
 
+        }
+
+        /**
+         * Prints the pre-calculated rat data (avgs for all of the stim values for each rat) 
+         * to a well-formatted Master excel sheet
+         */
+        public void printMasterData()
+        {
+            var file = new FileInfo(outPath);
+            if (file.Exists)
+            {
+                file.Delete();  // ensures we create a new workbook
+                file = new FileInfo(outPath);
+            }
+
+            //Create the Excel package and make a new workbook
+            ExcelPackage pck = new ExcelPackage(file);
+            ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add("Master");
+
+            pck.Save();
         }
 
         /**

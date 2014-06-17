@@ -132,7 +132,8 @@ namespace RatStim
         {
             ParseAndPrint myParser = new ParseAndPrint(inPaths, inPathCount, this.outPathDisplay.Text);
 
-            myParser.printToExcelSorted();
+            myParser.printIntermediateData();
+            myParser.printMasterData();
 
             SuccessWindow successWindow = new SuccessWindow(this.outPathDisplay.Text);
             successWindow.Show();
