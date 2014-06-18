@@ -24,6 +24,8 @@ namespace RatStim
     public class ParseAndPrint
     {
         private string outPath;               //String representation of the output path
+        private string extraOutPath;          //String representation of the path where the intermediate files are stored
+        private string outFileName;           //String representation of the file name without the directory/path info
         private List<string> inPaths;         //List of all the input csv file paths
         private int inPathCount;              //The number of input files
         private List<Entry> entries;          //A list to keep track of all the entries read in from the input csv files
@@ -41,9 +43,18 @@ namespace RatStim
          */
         public ParseAndPrint(List<string> input, int numInPaths, string output)
         {
+            //Set the nput path info
             inPaths = new List<string>(input);
             inPathCount = numInPaths;
+
+            //Set the output file names and paths
             outPath = output;
+            outFileName = Path.GetFileName(outPath);
+            extraOutPath = Path.GetDirectoryName(outPath) + "/" + Path.GetFileNameWithoutExtension(outPath) + "_INTERMEDIATE_DATA";
+            Directory.CreateDirectory(extraOutPath);
+            extraOutPath += "/intermediate_" + outFileName;
+
+            //Create the lists for storing data
             entries = new List<Entry>();
             ratsById = new Dictionary<string, RatById>();
             ratIds = new List<string>();
@@ -117,25 +128,22 @@ namespace RatStim
         public void printIntermediateData()
         {
             // Create the file using the FileInfo object
-            string fileName = Path.GetFileName(outPath);
-            string extraDirectoryPath = Path.GetDirectoryName(outPath) + "/" + Path.GetFileNameWithoutExtension(outPath) + "_INTERMEDIATE_DATA";
-            Directory.CreateDirectory(extraDirectoryPath);
-            extraDirectoryPath += "/intermediate_" + fileName;
-
-            var file = new FileInfo(extraDirectoryPath);
+            var file = new FileInfo(extraOutPath);
             if (file.Exists)
             {
                 file.Delete();  // ensures we create a new workbook
-                file = new FileInfo(outPath);
+                file = new FileInfo(extraOutPath);
             }
 
             //Create the Excel package and make a new workbook
             ExcelPackage pck = new ExcelPackage(file);
-            ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add("Master");
 
-            int i = 1;
             foreach(string ratId in ratIds)
             {
+                //Give each rat ID its own worksheet. Makes the file more readable
+                ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add(ratId.Replace("\0", string.Empty));
+                int i = 1;
+
                 foreach(string curStim in ratStims)
                 {
                     //The variables used to calculates averages for each stimulus
@@ -165,14 +173,14 @@ namespace RatStim
                             curSum += curEntry.colM;
                             entryCnt++;
 
-                            if (curStim.CompareTo("p120") == 0)
+                            if (curStim.Contains("p120"))
                             {
                                 //If we are on our 6th p120 in a row
                                 if (p120Cnt == 5)
                                 {
                                     //Then print the avg 
-                                    curAvg = curSum / entryCnt;
-                                    worksheet.Cells[i - 1, 11].Value = curAvg;
+                                    curAvg = curSum / 6;
+                                    worksheet.Cells[i, 11].Value = curAvg;
                                     //And add it to the avg list to be used in std deviation calculation
                                     avgs.Add(curAvg);
 
@@ -192,7 +200,7 @@ namespace RatStim
                     }
 
                     //Since the p120's have already been printed, don't re-print them
-                    if (curStim.CompareTo("p120") != 0)
+                    if (!curStim.Contains("p120"))
                     {
                         //Print the avg 
                         curAvg = curSum / entryCnt;
@@ -201,18 +209,16 @@ namespace RatStim
                         avgs.Add(curAvg);
                     }
                 }
-                i++; //Advance one more row (leave a blank row between rat #s)
+
+                resizeCols(worksheet);
             }
 
-            resizeCols(worksheet);
-
             pck.Save(); //And save
-
         }
 
         /**
          * Prints the pre-calculated rat data (avgs for all of the stim values for each rat) 
-         * to a well-formatted Master excel sheet
+         * to a well-formatted Master excel sheet. This file will be located at the ouputPath provided
          */
         public void printMasterData()
         {
@@ -226,6 +232,8 @@ namespace RatStim
             //Create the Excel package and make a new workbook
             ExcelPackage pck = new ExcelPackage(file);
             ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add("Master");
+
+            setupMasterHeaders(worksheet);
 
             pck.Save();
         }
@@ -243,6 +251,62 @@ namespace RatStim
             {
                 worksheet.Column(i).AutoFit();
             }
+        }
+
+        /**
+         * Increases the size of the coumns in the given worksheet by the provided
+         * integer size.
+         * 
+         * @param  worksheet  The Excel worksheet we want to resize columns on
+         * @param  increase   The size amount we want to increase the columns by
+         */
+        public void increaseColSize(ExcelWorksheet worksheet, int increase)
+        {
+            for (int i = 1; i <= worksheet.Dimension.End.Column; i++)
+            {
+                worksheet.Column(i).Width += increase;
+            }
+        }
+
+        /**
+         * Sets up the given worksheet as the master worksheet with the proper column headers
+         * and format for easy reading
+         * 
+         * @param  worksheet  The Excel worksheet we want setup
+         */
+        public void setupMasterHeaders(ExcelWorksheet worksheet)
+        {
+            worksheet.Cells[1, 1].Value = "Rat ID #";
+            worksheet.Cells[1, 2].Value = "Strain";
+            worksheet.Cells[1, 3].Value = "Weights";
+            worksheet.Cells[1, 4].Value = "P120 before";
+            worksheet.Cells[1, 5].Value = "P120 during";
+            worksheet.Cells[1, 6].Value = "P120 after";
+            worksheet.Cells[1, 7].Value = "No stimulus";
+            worksheet.Cells[1, 8].Value = "pp3 alone";
+            worksheet.Cells[1, 9].Value = "pp6 alone";
+            worksheet.Cells[1, 10].Value = "pp12 alone";
+            worksheet.Cells[1, 11].Value = "pp3 (30 ms)";
+            worksheet.Cells[1, 12].Value = "pp6 (30 ms)";
+            worksheet.Cells[1, 13].Value = "pp12 (30 ms)";
+            worksheet.Cells[1, 14].Value = "pp3 (50 ms)";
+            worksheet.Cells[1, 15].Value = "pp6 (50 ms)";
+            worksheet.Cells[1, 16].Value = "pp12 (50 ms)";
+            worksheet.Cells[1, 17].Value = "pp3 (80 ms)";
+            worksheet.Cells[1, 18].Value = "pp6 (80 ms)";
+            worksheet.Cells[1, 19].Value = "pp12 (80 ms)";
+            worksheet.Cells[1, 20].Value = "pp3 (140 ms)";
+            worksheet.Cells[1, 21].Value = "pp6 (140 ms)";
+            worksheet.Cells[1, 22].Value = "pp12 (140 ms)";
+
+            worksheet.Cells["A1:V1"].Style.Font.Bold = true;
+
+            resizeCols(worksheet);
+            increaseColSize(worksheet, 6);
+
+            worksheet.Cells.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+            
+            worksheet.View.FreezePanes(2, 3);
         }
 
         /**
@@ -276,7 +340,8 @@ namespace RatStim
 
         /**
          * Stores entries with the same ID in a list within a RatById object which itself is
-         * stored in a dictionary along with other RatById objects for all the other IDs
+         * stored in a dictionary along with other RatById objects for all the other IDs.
+         * Also creates a list of all stimulus values at the same time.
          */
         private void getRatsById()
         {
@@ -348,6 +413,8 @@ namespace RatStim
                 {
                     MessageBox.Show(inPaths.First() + " is currently in use by another process. Close it to continue.", "Error",
                                  MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    entries.Clear(); //Clear the list
+                    getCsvEntries(); //And try again.
                 }
 
                 entries.Sort();
@@ -360,6 +427,22 @@ namespace RatStim
         public string getOutPath()
         {
             return outPath;
+        }
+
+        /**
+         * Returns the string representation of the path to the extra file
+         */
+        public string getExtraOutPath()
+        {
+            return extraOutPath;
+        }
+
+        /**
+         * Returns the string representation of the output file name
+         */
+        public string getOutFileName()
+        {
+            return outFileName;
         }
     }
 }

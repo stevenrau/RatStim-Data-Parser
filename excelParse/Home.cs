@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.IO;
 
 namespace RatStim
 {
@@ -132,11 +133,20 @@ namespace RatStim
         {
             ParseAndPrint myParser = new ParseAndPrint(inPaths, inPathCount, this.outPathDisplay.Text);
 
-            myParser.printIntermediateData();
-            myParser.printMasterData();
+            try
+            {
+                myParser.printIntermediateData();
+                myParser.printMasterData();
 
-            SuccessWindow successWindow = new SuccessWindow(this.outPathDisplay.Text);
-            successWindow.Show();
+                SuccessWindow successWindow = new SuccessWindow(this.outPathDisplay.Text);
+                successWindow.Show();
+            }
+            catch(Exception)
+            {
+                MessageBox.Show("A file with the same name as the output path specified is currently in use by another process. " +
+                                "Close it to continue.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                sortButton_Click(sender, e);
+            }      
         }
     }
 }
