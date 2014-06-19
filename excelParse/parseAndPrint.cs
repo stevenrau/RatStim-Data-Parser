@@ -31,7 +31,6 @@ namespace RatStim
         private List<Entry> entries;          //A list to keep track of all the entries read in from the input csv files
         Dictionary<string, RatById> ratsById; //Each unique rat ID gets an entry in this dictionary with all of its entries
         List<string> ratIds;                  //A list of all he unique rat IDs
-        List<double> avgs;                    //A list of the averages for each stimulus group for each rat ID
         List<string> ratStims;                //A list of all the stimulus values for the rats being entered
 
         /**
@@ -58,7 +57,6 @@ namespace RatStim
             entries = new List<Entry>();
             ratsById = new Dictionary<string, RatById>();
             ratIds = new List<string>();
-            avgs = new List<double>();
             ratStims = new List<string>();
 
             getCsvEntries();
@@ -142,15 +140,15 @@ namespace RatStim
             {
                 //Give each rat ID its own worksheet. Makes the file more readable
                 ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add(ratId.Replace("\0", string.Empty));
-                int i = 1;
-
+                
+                int row = 1;
+                int p120Cnt = 0;
                 foreach(string curStim in ratStims)
                 {
                     //The variables used to calculates averages for each stimulus
                     double curSum = 0;
                     int entryCnt = 0;
                     double curAvg = 0;
-                    int p120Cnt = 0;
 
                     foreach(Entry curEntry in ratsById[ratId].entries)
                     {
@@ -158,16 +156,16 @@ namespace RatStim
                         string entryStim = curEntry.colG;
                         if (curStim.CompareTo(entryStim) == 0)
                         {
-                            worksheet.Cells[i, 1].Value = curEntry.colA;
-                            worksheet.Cells[i, 2].Value = curEntry.colB;
-                            worksheet.Cells[i, 3].Value = curEntry.colC;
-                            worksheet.Cells[i, 4].Value = curEntry.colD;
-                            worksheet.Cells[i, 5].Value = curEntry.colE;
-                            worksheet.Cells[i, 6].Value = curEntry.colF;
-                            worksheet.Cells[i, 7].Value = curEntry.colG;
-                            worksheet.Cells[i, 8].Value = curEntry.colH;
-                            worksheet.Cells[i, 9].Value = curEntry.colI;
-                            worksheet.Cells[i, 10].Value = curEntry.colM;
+                            worksheet.Cells[row, 1].Value = curEntry.colA;
+                            worksheet.Cells[row, 2].Value = curEntry.colB;
+                            worksheet.Cells[row, 3].Value = curEntry.colC;
+                            worksheet.Cells[row, 4].Value = curEntry.colD;
+                            worksheet.Cells[row, 5].Value = curEntry.colE;
+                            worksheet.Cells[row, 6].Value = curEntry.colF;
+                            worksheet.Cells[row, 7].Value = curEntry.colG;
+                            worksheet.Cells[row, 8].Value = curEntry.colH;
+                            worksheet.Cells[row, 9].Value = curEntry.colI;
+                            worksheet.Cells[row, 10].Value = curEntry.colM;
                             
                             //Keep track of the avg of this set of entries with common stimulus
                             curSum += curEntry.colM;
@@ -176,18 +174,31 @@ namespace RatStim
                             if (curStim.Contains("p120"))
                             {
                                 //If we are on our 6th p120 in a row
-                                if (p120Cnt == 5)
+                                if (p120Cnt == 5 || p120Cnt == 11 || p120Cnt == 17)
                                 {
                                     //Then print the avg 
                                     curAvg = curSum / 6;
-                                    worksheet.Cells[i, 11].Value = curAvg;
+                                    worksheet.Cells[row, 11].Value = curAvg;
                                     //And add it to the avg list to be used in std deviation calculation
-                                    avgs.Add(curAvg);
+                                    switch(p120Cnt)
+                                    {
+                                        case 5:
+                                            ratsById[ratId].addAvg(Constants.P120_BEFORE_STR, curAvg);
+                                            break;
+                                        case 11:
+                                            ratsById[ratId].addAvg(Constants.P120_DURING_STR, curAvg);
+                                            break;
+                                        case 17:
+                                            ratsById[ratId].addAvg(Constants.P120_AFTER_STR, curAvg);
+                                            break;
+                                        default:
+                                            break;
+                                    }
 
                                     //Reset the counting vals
                                     curSum = 0;
                                     entryCnt = 0;
-                                    p120Cnt = 0;
+                                    p120Cnt++;
                                 }
                                 else
                                 {
@@ -195,7 +206,7 @@ namespace RatStim
                                 }
                             }
 
-                            i++;
+                            row++;
                         }
                     }
 
@@ -204,9 +215,9 @@ namespace RatStim
                     {
                         //Print the avg 
                         curAvg = curSum / entryCnt;
-                        worksheet.Cells[i - 1, 11].Value = curAvg;
+                        worksheet.Cells[row - 1, 11].Value = curAvg;
                         //And add it to the avg list to be used in std deviation calculation
-                        avgs.Add(curAvg);
+                        ratsById[ratId].addAvg(curStim, curAvg);
                     }
                 }
 
@@ -235,7 +246,46 @@ namespace RatStim
 
             setupMasterHeaders(worksheet);
 
+            printRatInfoToMaster(worksheet);
+
             pck.Save();
+        }
+
+        /**
+         * Fills in the cells in the master fie with the previously calculated data
+         * 
+         * @param  worksheet  The master Excel worksheet fill in the data for
+         */
+        public void printRatInfoToMaster(ExcelWorksheet worksheet)
+        {
+            int row = 2;
+            foreach (string ratId in ratIds)
+            {
+                worksheet.Cells[row, Constants.RAT_ID].Value = ratId;
+                worksheet.Cells[row, Constants.STRAIN].Value = "";    //Don't have a value for this
+                worksheet.Cells[row, Constants.WEIGHT].Value = "";    //Don't have a value for this
+                worksheet.Cells[row, Constants.P120_BEFORE].Value = Math.Round(ratsById[ratId].getAvg(Constants.P120_BEFORE_STR), 2);
+                worksheet.Cells[row, Constants.P120_DURING].Value = Math.Round(ratsById[ratId].getAvg(Constants.P120_DURING_STR), 2);
+                worksheet.Cells[row, Constants.P120_AFTER].Value = Math.Round(ratsById[ratId].getAvg(Constants.P120_AFTER_STR), 2);
+                worksheet.Cells[row, Constants.NO_STIM].Value = Math.Round(ratsById[ratId].getAvg(Constants.NO_STIM_STR), 2);
+                worksheet.Cells[row, Constants.PP3_ALONE].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP3_ALONE_STR), 2);
+                worksheet.Cells[row, Constants.PP6_ALONE].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP6_ALONE_STR), 2);
+                worksheet.Cells[row, Constants.PP12_ALONE].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP12_ALONE_STR), 2);
+                worksheet.Cells[row, Constants.PP3_30].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP3_30_STR), 2);
+                worksheet.Cells[row, Constants.PP6_30].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP6_30_STR), 2);
+                worksheet.Cells[row, Constants.PP12_30].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP12_30_STR), 2);
+                worksheet.Cells[row, Constants.PP3_50].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP3_50_STR), 2);
+                worksheet.Cells[row, Constants.PP6_50].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP6_50_STR), 2);
+                worksheet.Cells[row, Constants.PP12_50].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP12_50_STR), 2);
+                worksheet.Cells[row, Constants.PP3_80].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP3_80_STR), 2);
+                worksheet.Cells[row, Constants.PP6_80].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP6_80_STR), 2);
+                worksheet.Cells[row, Constants.PP12_80].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP12_80_STR), 2);
+                worksheet.Cells[row, Constants.PP3_140].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP3_140_STR), 2);
+                worksheet.Cells[row, Constants.PP6_140].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP6_140_STR), 2);
+                worksheet.Cells[row, Constants.PP12_140].Value = Math.Round(ratsById[ratId].getAvg(Constants.PP12_140_STR), 2);
+
+                row++;
+            }
         }
 
         /**
@@ -375,11 +425,14 @@ namespace RatStim
             //Sort each RatById's list of entries by trial # so that they are printed in order
             foreach (string curRatId in ratIds)
             {
-               // ratsById[curRatId].entries.Sort();
+                ratsById[curRatId].entries.Sort();
             }
 
             //Then sorth the ratStim values so that they are alpahbetical
             ratStims.Sort();
+
+            //And sort the rat IDs so that they are printed in logical order
+            ratIds.Sort();
         }
 
         /**

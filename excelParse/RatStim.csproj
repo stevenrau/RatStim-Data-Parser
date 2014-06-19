@@ -145,6 +145,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="README.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="hand-thumbs-up.jpg" />
     <EmbeddedResource Include="hand-thumbs-up.png" />
     <Content Include="micro.ico" />

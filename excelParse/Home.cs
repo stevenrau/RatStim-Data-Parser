@@ -15,8 +15,10 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace RatStim
 {
@@ -141,12 +143,24 @@ namespace RatStim
                 SuccessWindow successWindow = new SuccessWindow(this.outPathDisplay.Text);
                 successWindow.Show();
             }
-            catch(Exception)
+            catch(IOException)
             {
-                MessageBox.Show("A file with the same name as the output path specified is currently in use by another process. " +
-                                "Close it to continue.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                sortButton_Click(sender, e);
+                DialogResult result = MessageBox.Show("A file with the same name as the output path specified is currently in use by another process. " +
+                                                           "Close it to continue.", "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                if (DialogResult.OK == result)
+                {
+                    sortButton_Click(sender, e);
+                }
+                else
+                {
+                    return;
+                }
             }      
+        }
+
+        private void readmeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
