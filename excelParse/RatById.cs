@@ -19,7 +19,7 @@ namespace RatStim
     {
         public List<Entry> entries;                //A list of entries for each unique rat ID
         public string id;                          //The unique rat ID
-        public Dictionary<string, double> avgs;   //The avgs of each stim value for this rat. The key is the stim value
+        private Dictionary<string, double> avgs;   //The avgs of each stim value for this rat. The key is the stim value
 
         public RatById(string newId)
         {

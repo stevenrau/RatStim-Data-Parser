@@ -133,6 +133,20 @@ namespace RatStim
 
         private void sortButton_Click(object sender, EventArgs e)
         {
+            if (0 == inPaths.Count)
+            {
+                DialogResult result = MessageBox.Show("No input file(s) selected.",
+                                                      "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if(this.outPathDisplay.Text.CompareTo("") == 0)
+            {
+                DialogResult result = MessageBox.Show("No output file selected.",
+                                                      "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             ParseAndPrint myParser = new ParseAndPrint(inPaths, inPathCount, this.outPathDisplay.Text);
 
             try

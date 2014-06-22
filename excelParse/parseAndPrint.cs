@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using OfficeOpenXml;
+using System.Drawing;
 
 namespace RatStim
 {
@@ -286,6 +287,39 @@ namespace RatStim
 
                 row++;
             }
+
+            /*List<double> test = new List<double>();
+            test.Add(144.17);
+            test.Add(80.67);
+            test.Add(178.17);
+            test.Add(179.5);
+            test.Add(114.17);
+            test.Add(125.67);
+            test.Add(72.5);
+            test.Add(126.17);
+            test.Add(233.5);
+            test.Add(110.83);
+            test.Add(109.17);
+            test.Add(155.33);
+            test.Add(110);*/
+
+            string avgRow = "A" + row + ":V" + row;
+            worksheet.Cells[avgRow].Style.Font.Color.SetColor(Color.Red);
+            worksheet.Cells[row, 2].Value = "Average";
+            //worksheet.Cells[row, 3].Value = test.Average();
+            row++;
+
+            string devRow = "A" + row + ":V" + row;
+            worksheet.Cells[devRow].Style.Font.Color.SetColor(Color.Green);
+            worksheet.Cells[row, 2].Value = "Std deviation";
+            //worksheet.Cells[row, 3].Value = calcStdDev(test);
+            row++;
+
+            string cntRow = "A" + row + ":V" + row;
+            worksheet.Cells[cntRow].Style.Font.Color.SetColor(Color.Blue);
+            worksheet.Cells[row, 2].Value = "Count";
+            //worksheet.Cells[row, 3].Value = test.Count;
+
         }
 
         /**
@@ -357,6 +391,27 @@ namespace RatStim
             worksheet.Cells.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
             
             worksheet.View.FreezePanes(2, 3);
+        }
+
+        /**
+         * Calculates the standard deviation of a list of numbers
+         * 
+         * @param  nums  A list of numbers that you want the std deviaton of
+         * 
+         * @return  The standard devaition of the numbers in the parameter list
+         *          0 if the list is null
+         */
+        public double calcStdDev(List<double> nums)
+        {
+            if (null == nums)
+            {
+                return 0;
+            }
+            double mean = nums.Average();
+            double sumOfSquaresOfDifferences = nums.Select(val => (val - mean) * (val - mean)).Sum();
+            double sd = Math.Sqrt(sumOfSquaresOfDifferences / (nums.Count-1));
+
+            return sd;
         }
 
         /**
