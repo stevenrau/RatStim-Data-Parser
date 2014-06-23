@@ -99,6 +99,7 @@
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click_1);
             // 
             // openFileDialog
             // 
@@ -162,7 +163,7 @@
             // saveFileDialog
             // 
             this.saveFileDialog.FileName = "outputFile.xlsx";
-            this.saveFileDialog.Filter = "Excel .xlsx|*.xlsx|Excel .xls|*xls";
+            this.saveFileDialog.Filter = "Excel .xlsx|*.xlsx";
             this.saveFileDialog.Title = "Choose save file location";
             // 
             // sortButton

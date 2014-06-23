@@ -59,5 +59,20 @@ namespace RatStim.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ///////////////////////////////////////////////////////////////////////////////
+        /////                 ----------------------------------                        //
+        /////                 RatStim Data Parser README / Manual                       //
+        /////                 -----------------------------------                       //
+        /////                                                                           //
+        ///// Written by: Steven Rau                                                    //
+        ///// For more help see: http [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string README {
+            get {
+                return ResourceManager.GetString("README", resourceCulture);
+            }
+        }
     }
 }

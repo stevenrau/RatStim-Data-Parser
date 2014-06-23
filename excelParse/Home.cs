@@ -176,5 +176,11 @@ namespace RatStim
         {
 
         }
+
+        private void aboutToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            AboutWindow aboutWindow = new AboutWindow();
+            aboutWindow.Show();
+        }
     }
 }

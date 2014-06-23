@@ -16,6 +16,8 @@ using System.IO;
 using System.Windows.Forms;
 using OfficeOpenXml;
 using System.Drawing;
+using System.Windows;
+using OfficeOpenXml.Style;
 
 namespace RatStim
 {
@@ -24,15 +26,15 @@ namespace RatStim
      */
     public class ParseAndPrint
     {
-        private string outPath;               //String representation of the output path
-        private string extraOutPath;          //String representation of the path where the intermediate files are stored
-        private string outFileName;           //String representation of the file name without the directory/path info
-        private List<string> inPaths;         //List of all the input csv file paths
-        private int inPathCount;              //The number of input files
-        private List<Entry> entries;          //A list to keep track of all the entries read in from the input csv files
-        Dictionary<string, RatById> ratsById; //Each unique rat ID gets an entry in this dictionary with all of its entries
-        List<string> ratIds;                  //A list of all he unique rat IDs
-        List<string> ratStims;                //A list of all the stimulus values for the rats being entered
+        private string outPath;                //String representation of the output path
+        private string extraOutPath;           //String representation of the path where the intermediate files are stored
+        private string outFileName;            //String representation of the file name without the directory/path info
+        private List<string> inPaths;          //List of all the input csv file paths
+        private int inPathCount;               //The number of input files
+        private List<Entry> entries;           //A list to keep track of all the entries read in from the input csv files
+        Dictionary<string, RatById> ratsById;  //Each unique rat ID gets an entry in this dictionary with all of its entries
+        List<string> ratIds;                   //A list of all he unique rat IDs
+        List<string> ratStims;                 //A list of all the stimulus values for the rats being entered
 
         /**
          * Constructor for the parseAndPrint class.
@@ -121,6 +123,8 @@ namespace RatStim
         }
 
         /**
+         * @TODO  Refactor this nasty method
+         * 
          * Prints the entries to an excel file sorted by rat ID, with avgs calculated
          * for each stimulus
          */
@@ -141,8 +145,11 @@ namespace RatStim
             {
                 //Give each rat ID its own worksheet. Makes the file more readable
                 ExcelWorksheet worksheet = pck.Workbook.Worksheets.Add(ratId.Replace("\0", string.Empty));
-                
-                int row = 1;
+                setupIntermediateHeaders(worksheet);
+
+                //List used to store the 6 values for each stim value. Passed to markIntermediateAbnormal to help calc std deviation
+                List<double> curValsList = new List<double>();
+                int row = 2; //Start on 2nd row since there are column headers
                 int p120Cnt = 0;
                 foreach(string curStim in ratStims)
                 {
@@ -157,6 +164,9 @@ namespace RatStim
                         string entryStim = curEntry.colG;
                         if (curStim.CompareTo(entryStim) == 0)
                         {
+                            //Add its value to the curValsList
+                            curValsList.Add(curEntry.colM);
+
                             worksheet.Cells[row, 1].Value = curEntry.colA;
                             worksheet.Cells[row, 2].Value = curEntry.colB;
                             worksheet.Cells[row, 3].Value = curEntry.colC;
@@ -179,8 +189,9 @@ namespace RatStim
                                 {
                                     //Then print the avg 
                                     curAvg = curSum / 6;
-                                    worksheet.Cells[row, 11].Value = curAvg;
-                                    //And add it to the avg list to be used in std deviation calculation
+                                    worksheet.Cells[row, 11].Value = Math.Round(curAvg, 2);
+                                    worksheet.Cells[row, 11].Style.Font.Color.SetColor(Color.Red);
+                                    //And add it to the avg list to be used in std deviation calculation and add it to the avg list for this stimulus value
                                     switch(p120Cnt)
                                     {
                                         case 5:
@@ -196,10 +207,15 @@ namespace RatStim
                                             break;
                                     }
 
-                                    //Reset the counting vals
+                                    //Find and highlight any abnormal data
+                                    markIntermediateAbnormal(worksheet, row, curValsList, curAvg);
+
+                                    //Then reset the counting vals
                                     curSum = 0;
                                     entryCnt = 0;
                                     p120Cnt++;
+                                    row++;
+                                    curValsList.Clear();
                                 }
                                 else
                                 {
@@ -216,16 +232,104 @@ namespace RatStim
                     {
                         //Print the avg 
                         curAvg = curSum / entryCnt;
-                        worksheet.Cells[row - 1, 11].Value = curAvg;
+                        worksheet.Cells[row - 1, 11].Value = Math.Round(curAvg, 2);
+                        worksheet.Cells[row - 1, 11].Style.Font.Color.SetColor(Color.Red);
                         //And add it to the avg list to be used in std deviation calculation
                         ratsById[ratId].addAvg(curStim, curAvg);
+                        //Find and highlight any abnormal data
+                        markIntermediateAbnormal(worksheet, row - 1, curValsList, curAvg);
+
                     }
+
+                    //Reset the current values list now that we are done with this stim val
+                    curValsList.Clear();
+                    row++;
                 }
 
                 resizeCols(worksheet);
             }
 
             pck.Save(); //And save
+        }
+
+        /**
+         * Sets up the column headers for the intermediate file
+         * 
+         * @param  worksheet  The master Excel worksheet we are working on
+         */
+        public void setupIntermediateHeaders(ExcelWorksheet worksheet)
+        {
+            worksheet.Cells[1, 1].Value = "Rat ID #";
+            worksheet.Cells[1, 2].Value = "Time";
+            worksheet.Cells[1, 4].Value = "Rat ID";
+            worksheet.Cells[1, 7].Value = "Stimulus";
+            worksheet.Cells[1, 9].Value = "Trial Number";
+            worksheet.Cells[1, 10].Value = "Value";
+            worksheet.Cells[1, 11].Value = "Average";
+            worksheet.Cells[1, 12].Value = "Std deviation";
+
+            worksheet.Cells[1, 11].Style.Font.Color.SetColor(Color.Red);
+            worksheet.Cells[1, 12].Style.Font.Color.SetColor(Color.Green);
+
+            worksheet.Cells[3, 14].Value = "View different rats by selecting the worksheet with the desired rat ID";
+            worksheet.Cells[3, 14].Style.Font.Bold = true;
+            worksheet.Cells[3, 14].Style.Font.Italic = true;
+
+            worksheet.Cells[4, 14].Value = "Red highlighted entries have a value >= 2 standard deviations from the mean";
+            worksheet.Cells[4, 14].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells[4, 14].Style.Fill.BackgroundColor.SetColor(Color.LightCoral);
+
+            worksheet.Cells[5, 14].Value = "Yellow highlighted entries have a value >= 1 standard deviation from the mean";
+            worksheet.Cells[5, 14].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells[5, 14].Style.Fill.BackgroundColor.SetColor(Color.LightGoldenrodYellow);
+
+            worksheet.Cells["A1:L1"].Style.Font.Bold = true;
+
+            resizeCols(worksheet);
+            increaseColSize(worksheet, 10);
+
+            worksheet.Cells.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+            worksheet.View.FreezePanes(2, 1);
+        }
+
+        /**
+         * Highlights any abnormal entries in the intermediate data worksheet. 
+         * Entries are considered abnormal if they are > 1 SD away from the mean
+         *         -> Yellow highlight is 1SD <= val < 2SD
+         *         ->    Red highlight is >= 2SD
+         *         
+         * @param  worksheet  The master Excel worksheet we are working on
+         * @param  row        The last row index of the values we are working with
+         * @param  vals       The list of values we are working with
+         * @param  avg        The avg of the list of vals provided
+         */
+        public void markIntermediateAbnormal(ExcelWorksheet worksheet, int row, List<double> vals, double avg)
+        {
+            double stdDev = calcStdDev(vals);
+
+            //Print the std devaition
+            worksheet.Cells[row, 12].Value = Math.Round(stdDev, 2);
+            worksheet.Cells[row, 12].Style.Font.Color.SetColor(Color.Green);
+            
+            for (int i =0; i < 6; i++)
+            {
+                double diff = double.Parse(worksheet.Cells[row, 10].Value.ToString()) - avg;
+                if (Math.Abs(diff) >= (2*stdDev))
+                {
+                    string rowString = "A" + row + ":J" + row;
+                    worksheet.Cells[rowString].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    worksheet.Cells[rowString].Style.Fill.BackgroundColor.SetColor(Color.LightCoral);
+                }
+                else if (Math.Abs(diff) >= (stdDev))
+                {
+                    string rowString = "A" + row + ":J" + row;
+                    worksheet.Cells[rowString].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    worksheet.Cells[rowString].Style.Fill.BackgroundColor.SetColor(Color.LightGoldenrodYellow);
+                }
+
+                row--;
+            }
         }
 
         /**
@@ -288,38 +392,58 @@ namespace RatStim
                 row++;
             }
 
-            /*List<double> test = new List<double>();
-            test.Add(144.17);
-            test.Add(80.67);
-            test.Add(178.17);
-            test.Add(179.5);
-            test.Add(114.17);
-            test.Add(125.67);
-            test.Add(72.5);
-            test.Add(126.17);
-            test.Add(233.5);
-            test.Add(110.83);
-            test.Add(109.17);
-            test.Add(155.33);
-            test.Add(110);*/
-
             string avgRow = "A" + row + ":V" + row;
             worksheet.Cells[avgRow].Style.Font.Color.SetColor(Color.Red);
             worksheet.Cells[row, 2].Value = "Average";
-            //worksheet.Cells[row, 3].Value = test.Average();
             row++;
 
             string devRow = "A" + row + ":V" + row;
             worksheet.Cells[devRow].Style.Font.Color.SetColor(Color.Green);
             worksheet.Cells[row, 2].Value = "Std deviation";
-            //worksheet.Cells[row, 3].Value = calcStdDev(test);
             row++;
 
             string cntRow = "A" + row + ":V" + row;
             worksheet.Cells[cntRow].Style.Font.Color.SetColor(Color.Blue);
-            worksheet.Cells[row, 2].Value = "Count";
-            //worksheet.Cells[row, 3].Value = test.Count;
+            worksheet.Cells[row, 2].Value = "Count";          
 
+            printMasterTotals(worksheet);
+        }
+
+        /**
+         * Prints the average, std deveiation, and counts for each of the stimulus columns
+         * on the Master ouptut file
+         * 
+         * @param  worksheet  The Excel worksheet we want to print the data on
+         */
+        public void printMasterTotals(ExcelWorksheet worksheet)
+        {
+            int curRow = 2;  //The first row with relevant data will be row 2 (The first rat)
+            int curCol = 4;  //The first columns with relevant data will be column 4 (P120 before)
+            int finalCol = 22; //The final column we want to calculate date for (Col V, pp12[140ms])
+
+            List<double> colVals = new List<double>();
+            //Walk down the columns and gather the data
+            while(curCol <= finalCol)
+            {
+                int rowsProcessed = 0;
+                while (rowsProcessed < ratIds.Count)
+                {
+                    colVals.Add((double)worksheet.Cells[curRow, curCol].Value);
+                    rowsProcessed++;
+                    curRow++;
+                }
+
+                //Print the values for this column
+                worksheet.Cells[curRow, curCol].Value = Math.Round(colVals.Average(), 2);
+                curRow++;
+                worksheet.Cells[curRow, curCol].Value = Math.Round(calcStdDev(colVals), 2);
+                curRow++;
+                worksheet.Cells[curRow, curCol].Value = colVals.Count;
+
+                curRow = 2;      //Reset to the first row.
+                colVals.Clear(); //Clear the column list
+                curCol++;        //Increment the column
+            }
         }
 
         /**
