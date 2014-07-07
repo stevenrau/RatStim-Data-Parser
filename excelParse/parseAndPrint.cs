@@ -367,8 +367,9 @@ namespace RatStim
             foreach (string ratId in ratIds)
             {
                 worksheet.Cells[row, Constants.RAT_ID].Value = ratId;
-                worksheet.Cells[row, Constants.STRAIN].Value = "";    //Don't have a value for this
-                worksheet.Cells[row, Constants.WEIGHT].Value = "";    //Don't have a value for this
+                worksheet.Cells[row, Constants.STRAIN].Value = "";      //Don't have a value for this
+                worksheet.Cells[row, Constants.TREATMENT].Value = "";   //Don't have a value for this
+                worksheet.Cells[row, Constants.WEIGHT].Value = "";      //Don't have a value for this
                 worksheet.Cells[row, Constants.P120_BEFORE].Value = Math.Round(ratsById[ratId].getAvg(Constants.P120_BEFORE_STR), 2);
                 worksheet.Cells[row, Constants.P120_DURING].Value = Math.Round(ratsById[ratId].getAvg(Constants.P120_DURING_STR), 2);
                 worksheet.Cells[row, Constants.P120_AFTER].Value = Math.Round(ratsById[ratId].getAvg(Constants.P120_AFTER_STR), 2);
@@ -392,19 +393,28 @@ namespace RatStim
                 row++;
             }
 
-            string avgRow = "A" + row + ":V" + row;
+            //Row for averages
+            string avgRow = "A" + row + ":AV" + row;
             worksheet.Cells[avgRow].Style.Font.Color.SetColor(Color.Red);
-            worksheet.Cells[row, 2].Value = "Average";
+            worksheet.Cells[row, 3].Value = "Average";
             row++;
 
-            string devRow = "A" + row + ":V" + row;
+            //Row for standard deviation
+            string devRow = "A" + row + ":AV" + row;
             worksheet.Cells[devRow].Style.Font.Color.SetColor(Color.Green);
-            worksheet.Cells[row, 2].Value = "Std deviation";
+            worksheet.Cells[row, 3].Value = "Std deviation";
             row++;
 
-            string cntRow = "A" + row + ":V" + row;
-            worksheet.Cells[cntRow].Style.Font.Color.SetColor(Color.Blue);
-            worksheet.Cells[row, 2].Value = "Count";          
+            //Row for standard error measurement
+            string semRow = "A" + row + ":AV" + row;
+            worksheet.Cells[semRow].Style.Font.Color.SetColor(Color.Blue);
+            worksheet.Cells[row, 3].Value = "SEM";
+            row++;
+
+            //Row for count
+            string cntRow = "A" + row + ":AV" + row;
+            worksheet.Cells[cntRow].Style.Font.Color.SetColor(Color.MediumOrchid);
+            worksheet.Cells[row, 3].Value = "Count";          
 
             printMasterTotals(worksheet);
         }
@@ -417,8 +427,8 @@ namespace RatStim
          */
         public void printMasterTotals(ExcelWorksheet worksheet)
         {
-            int curRow = 2;  //The first row with relevant data will be row 2 (The first rat)
-            int curCol = 4;  //The first columns with relevant data will be column 4 (P120 before)
+            int curRow = 2;    //The first row with relevant data will be row 2 (The first rat)
+            int curCol = 5;    //The first columns with relevant data will be column 4 (P120 before)
             int finalCol = 22; //The final column we want to calculate date for (Col V, pp12[140ms])
 
             List<double> colVals = new List<double>();
@@ -434,11 +444,14 @@ namespace RatStim
                 }
 
                 //Print the values for this column
-                worksheet.Cells[curRow, curCol].Value = Math.Round(colVals.Average(), 2);
+                double stdDev = calcStdDev(colVals);
+                worksheet.Cells[curRow, curCol].Value = Math.Round(colVals.Average(), 2);              //The average
                 curRow++;
-                worksheet.Cells[curRow, curCol].Value = Math.Round(calcStdDev(colVals), 2);
+                worksheet.Cells[curRow, curCol].Value = Math.Round(stdDev, 2);                         //The std deviation
                 curRow++;
-                worksheet.Cells[curRow, curCol].Value = colVals.Count;
+                worksheet.Cells[curRow, curCol].Value = Math.Round(calcStdError(colVals, stdDev), 2);  //The stadard error
+                curRow++;
+                worksheet.Cells[curRow, curCol].Value = colVals.Count;                                 //The count
 
                 curRow = 2;      //Reset to the first row.
                 colVals.Clear(); //Clear the column list
@@ -484,37 +497,69 @@ namespace RatStim
          */
         public void setupMasterHeaders(ExcelWorksheet worksheet)
         {
-            worksheet.Cells[1, 1].Value = "Rat ID #";
-            worksheet.Cells[1, 2].Value = "Strain";
-            worksheet.Cells[1, 3].Value = "Weights";
-            worksheet.Cells[1, 4].Value = "P120 before";
-            worksheet.Cells[1, 5].Value = "P120 during";
-            worksheet.Cells[1, 6].Value = "P120 after";
-            worksheet.Cells[1, 7].Value = "No stimulus";
-            worksheet.Cells[1, 8].Value = "pp3 alone";
-            worksheet.Cells[1, 9].Value = "pp6 alone";
-            worksheet.Cells[1, 10].Value = "pp12 alone";
-            worksheet.Cells[1, 11].Value = "pp3 (30 ms)";
-            worksheet.Cells[1, 12].Value = "pp6 (30 ms)";
-            worksheet.Cells[1, 13].Value = "pp12 (30 ms)";
-            worksheet.Cells[1, 14].Value = "pp3 (50 ms)";
-            worksheet.Cells[1, 15].Value = "pp6 (50 ms)";
-            worksheet.Cells[1, 16].Value = "pp12 (50 ms)";
-            worksheet.Cells[1, 17].Value = "pp3 (80 ms)";
-            worksheet.Cells[1, 18].Value = "pp6 (80 ms)";
-            worksheet.Cells[1, 19].Value = "pp12 (80 ms)";
-            worksheet.Cells[1, 20].Value = "pp3 (140 ms)";
-            worksheet.Cells[1, 21].Value = "pp6 (140 ms)";
-            worksheet.Cells[1, 22].Value = "pp12 (140 ms)";
+            worksheet.Cells["A1"].Value = "Rat ID #";
+            worksheet.Cells["B1"].Value = "Strain";
+            worksheet.Cells["C1"].Value = "Treatment";
+            worksheet.Cells["D1"].Value = "Weight";
+            worksheet.Cells["E1"].Value = "P120 before";
+            worksheet.Cells["F1"].Value = "P120 during";
+            worksheet.Cells["G1"].Value = "P120 after";
+            worksheet.Cells["H1"].Value = "No stimulus";
+            worksheet.Cells["I1"].Value = "pp3 alone";
+            worksheet.Cells["J1"].Value = "pp6 alone";
+            worksheet.Cells["K1"].Value = "pp12 alone";
+            worksheet.Cells["L1"].Value = "pp3 (30 ms)";
+            worksheet.Cells["M1"].Value = "pp6 (30 ms)";
+            worksheet.Cells["N1"].Value = "pp12 (30 ms)";
+            worksheet.Cells["O1"].Value = "pp3 (50 ms)";
+            worksheet.Cells["P1"].Value = "pp6 (50 ms)";
+            worksheet.Cells["Q1"].Value = "pp12 (50 ms)";
+            worksheet.Cells["R1"].Value = "pp3 (80 ms)";
+            worksheet.Cells["S1"].Value = "pp6 (80 ms)";
+            worksheet.Cells["T1"].Value = "pp12 (80 ms)";
+            worksheet.Cells["U1"].Value = "pp3 (140 ms)";
+            worksheet.Cells["V1"].Value = "pp6 (140 ms)";
+            worksheet.Cells["W1"].Value = "pp12 (140 ms)";
 
-            worksheet.Cells["A1:V1"].Style.Font.Bold = true;
+            //THEN LEAVE COLUMN 24 (X) BLANK
+
+            worksheet.Cells["Y1"].Value = "pp3 (30 ms)";
+            worksheet.Cells["Z1"].Value = "pp6 (30ms) ";
+            worksheet.Cells["AA1"].Value = "pp12 (30ms)";
+            worksheet.Cells["AB1"].Value = "pp3 (50ms)";
+            worksheet.Cells["AC1"].Value = "pp6 (50ms)";
+            worksheet.Cells["AD1"].Value = "pp12 (50ms)";
+            worksheet.Cells["AE1"].Value = "pp3 (80ms)";
+            worksheet.Cells["AF1"].Value = "pp6 (80ms)";
+            worksheet.Cells["AG1"].Value = "pp12 (80ms)";
+            worksheet.Cells["AH1"].Value = "pp3 (140ms)";
+            worksheet.Cells["AI1"].Value = "pp6 (140ms)";
+            worksheet.Cells["AJ1"].Value = "pp12 (140ms)";
+            worksheet.Cells["AK1"].Value = "PPI long";
+            worksheet.Cells["AL1"].Value = "PPI short";
+            worksheet.Column(37).Style.Font.Color.SetColor(Color.Red); //Set PPI Long col to be red
+
+            //THEN LEAVE COLUMNS 39 (AM) and 40 (AN) BLANK
+
+            worksheet.Cells["AO1"].Value = "PP3 long avg";
+            worksheet.Cells["AP1"].Value = "PP6 long avg";
+            worksheet.Cells["AQ1"].Value = "PP12 long avg";
+
+            //THEN LEAVE COLUMN 44 (AR) BLANK
+
+            worksheet.Cells["AS1"].Value = "30ms avg";
+            worksheet.Cells["AT1"].Value = "50ms avg";
+            worksheet.Cells["AU1"].Value = "80ms avg";
+            worksheet.Cells["AV1"].Value = "140ms avg";
+
+            worksheet.Cells["A1:AV1"].Style.Font.Bold = true;
 
             resizeCols(worksheet);
-            increaseColSize(worksheet, 6);
+            increaseColSize(worksheet, 3);
 
             worksheet.Cells.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
             
-            worksheet.View.FreezePanes(2, 3);
+            worksheet.View.FreezePanes(2, 4);
         }
 
         /**
@@ -536,6 +581,25 @@ namespace RatStim
             double sd = Math.Sqrt(sumOfSquaresOfDifferences / (nums.Count-1));
 
             return sd;
+        }
+
+        /*
+         * Calculates the standard error of a list of numbers
+         * 
+         * @param  nums    A list of numbers that you want the std error of
+         * @param  stdDev  The std devaition of the list of numbers
+         * 
+         * @return  The standard error of the numbers in the parameter list
+         *          0 if the list is null
+         */
+        public double calcStdError(List<double> nums, double stdDev)
+        {
+            if (null == nums)
+            {
+                return 0;
+            }
+
+            return stdDev / Math.Sqrt(nums.Count);
         }
 
         /**

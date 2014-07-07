@@ -26,26 +26,27 @@ namespace RatStim
         //Columns for the corresponding values in the Master file
         public const int RAT_ID = 1;
         public const int STRAIN = 2;
-        public const int WEIGHT = 3;
-        public const int P120_BEFORE = 4;
-        public const int P120_DURING = 5;
-        public const int P120_AFTER = 6;
-        public const int NO_STIM = 7;
-        public const int PP3_ALONE = 8;
-        public const int PP6_ALONE = 9;
-        public const int PP12_ALONE = 10;
-        public const int PP3_30 = 11;
-        public const int PP6_30 = 12;
-        public const int PP12_30 = 13;
-        public const int PP3_50 = 14;
-        public const int PP6_50 = 15;
-        public const int PP12_50 = 16;
-        public const int PP3_80 = 17;
-        public const int PP6_80 = 18;
-        public const int PP12_80 = 19;
-        public const int PP3_140 = 20;
-        public const int PP6_140 = 21;
-        public const int PP12_140 = 22;
+        public const int TREATMENT = 3;
+        public const int WEIGHT = 4;
+        public const int P120_BEFORE = 5;
+        public const int P120_DURING = 6;
+        public const int P120_AFTER = 7;
+        public const int NO_STIM = 8;
+        public const int PP3_ALONE = 9;
+        public const int PP6_ALONE = 10;
+        public const int PP12_ALONE = 11;
+        public const int PP3_30 = 12;
+        public const int PP6_30 = 13;
+        public const int PP12_30 = 14;
+        public const int PP3_50 = 15;
+        public const int PP6_50 = 16;
+        public const int PP12_50 = 17;
+        public const int PP3_80 = 18;
+        public const int PP6_80 = 19;
+        public const int PP12_80 = 20;
+        public const int PP3_140 = 21;
+        public const int PP6_140 = 22;
+        public const int PP12_140 = 23;
 
         //String representations of the stimulus values
         public const string P120_BEFORE_STR = "p120_before";
