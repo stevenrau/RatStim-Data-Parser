@@ -363,6 +363,50 @@ namespace RatStim
          */
         public void printRatInfoToMaster(ExcelWorksheet worksheet)
         {
+            //Print the four groups of data to the master file. Each group has unique calculation properties, so print in separate methods
+            int row = printIndividualRatDataToMaster(worksheet);
+            printSecondMasterDataGroup(worksheet, row - 1);
+            printLongStimAvgsToMaster(worksheet, row - 1);
+            printTimeAvgsToMaster(worksheet, row - 1);
+
+            //Row for averages
+            string avgRow = "A" + row + ":AV" + row;
+            worksheet.Cells[avgRow].Style.Font.Color.SetColor(Color.Red);
+            worksheet.Cells[row, 3].Value = "Average";
+            row++;
+
+            //Row for standard deviation
+            string devRow = "A" + row + ":AV" + row;
+            worksheet.Cells[devRow].Style.Font.Color.SetColor(Color.Green);
+            worksheet.Cells[row, 3].Value = "Std deviation";
+            row++;
+
+            //Row for standard error measurement
+            string semRow = "A" + row + ":AV" + row;
+            worksheet.Cells[semRow].Style.Font.Color.SetColor(Color.Blue);
+            worksheet.Cells[row, 3].Value = "SEM";
+            row++;
+
+            //Row for count
+            string cntRow = "A" + row + ":AV" + row;
+            worksheet.Cells[cntRow].Style.Font.Color.SetColor(Color.MediumOrchid);
+            worksheet.Cells[row, 3].Value = "Count";          
+
+            printMasterTotals(worksheet);
+        }
+
+        /**
+         * Prints the sorted data into the proper columns on the master output file.
+         * This will be the first group of data, columns E-W (5-23). 
+         * 
+         * NOTE: This should only be called by printRatInfoToMaster().
+         * 
+         * @param  worksheet  The Excel worksheet we want to print the data on
+         * 
+         * @return  row  The first blank row index after the printed rat data
+         */
+        public int printIndividualRatDataToMaster(ExcelWorksheet worksheet)
+        {
             int row = 2;
             foreach (string ratId in ratIds)
             {
@@ -393,30 +437,181 @@ namespace RatStim
                 row++;
             }
 
-            //Row for averages
-            string avgRow = "A" + row + ":AV" + row;
-            worksheet.Cells[avgRow].Style.Font.Color.SetColor(Color.Red);
-            worksheet.Cells[row, 3].Value = "Average";
-            row++;
+            return row;
+        }
 
-            //Row for standard deviation
-            string devRow = "A" + row + ":AV" + row;
-            worksheet.Cells[devRow].Style.Font.Color.SetColor(Color.Green);
-            worksheet.Cells[row, 3].Value = "Std deviation";
-            row++;
+        /**
+         * Prints the 2nd group of rat data, where each cell is 100 - ((100 * (x - 13)) / F)
+         *          where:  x  is the column of the current cell
+         *                  F  is the F cell on the same row as the current cell
+         * This will be for columns Y-AL (25-36) with cols AK-AL (37-38) being average values across the previous rows
+         * 
+         * NOTE: This should only be called by printRatInfoToMaster().
+         * 
+         * @param  worksheet  The Excel worksheet we want to print the data on
+         * @param  lastRow    The index of the last row of rat data so that we know where to stop calculating
+         */
+        public void printSecondMasterDataGroup(ExcelWorksheet worksheet, int lastRow)
+        {
+               
+            int F = 6;      //F is the 6th column
+            double xVal;
+            double fVal;
+            List<double> ppiLong = new List<double>();
+            List<double> ppiShort = new List<double>();
+            double thisVal;
 
-            //Row for standard error measurement
-            string semRow = "A" + row + ":AV" + row;
-            worksheet.Cells[semRow].Style.Font.Color.SetColor(Color.Blue);
-            worksheet.Cells[row, 3].Value = "SEM";
-            row++;
+            int curRow = 2; //Start on the 2nd row and work down towards lastRow
+            while(curRow <= lastRow)
+            {
+                int curCol = 25;
+                while(curCol <= 36)
+                {
+                    xVal = (double)worksheet.Cells[curRow, curCol-13].Value;
+                    fVal = (double)worksheet.Cells[curRow, F].Value;
 
-            //Row for count
-            string cntRow = "A" + row + ":AV" + row;
-            worksheet.Cells[cntRow].Style.Font.Color.SetColor(Color.MediumOrchid);
-            worksheet.Cells[row, 3].Value = "Count";          
+                    //Calculate the value and put it in the cell
+                    thisVal = (double)(100 - ((100 * xVal) / fVal));
+                    worksheet.Cells[curRow, curCol].Value = Math.Round(thisVal, 2);
 
-            printMasterTotals(worksheet);
+                    //If it's one of the 30ms cols, add to the short list, else add to the long list
+                    if(curCol == 25 || curCol == 26 || curCol == 27)
+                    {
+                        ppiShort.Add(thisVal);
+                    }
+                    else
+                    {
+                        ppiLong.Add(thisVal);
+                    }
+                    curCol++;
+                }
+
+                //Now we are at col AK (37), so print the avg of the ppiLong list
+                worksheet.Cells[curRow, curCol].Value = Math.Round(ppiLong.Average(), 2);
+                curCol++;
+
+                //Now we are at col AL (38), so print the avg of the ppiShort list
+                worksheet.Cells[curRow, curCol].Value = Math.Round(ppiShort.Average(), 2);
+
+                //Then clear the lists and go to the next row
+                ppiLong.Clear();
+                ppiShort.Clear();
+                curRow++;
+            }
+        }
+
+        /**
+         * Calculates and prints data for columns AO-AQ (41-43) in the master file.
+         * These are the avg values of the "long" times for each of the 3 stims (pp3, pp6, pp12), attained by grabbing
+         * from the appropriate cells from the calculations done in the printSecondMasterDataGroup() method.
+         * 
+         * NOTE: This should only be called by printRatInfoToMaster() and after printSecondMasterDataGroup().
+         * 
+         * @param  worksheet  The Excel worksheet we want to print the data on
+         * @param  lastRow    The index of the last row of rat data so that we know where to stop calculating
+         */
+        public void printLongStimAvgsToMaster(ExcelWorksheet worksheet, int lastRow)
+        {
+            int curRow = 2;
+            int curCol = 41;
+
+            //First print the "PP3 Long Avg" column. The PP3 vals are found in cols 28, 31, 34
+            while (curRow <= lastRow)
+            {
+                double sum = 0;
+                double avg = 0;
+
+                sum += (double)worksheet.Cells[curRow, 28].Value;
+                sum += (double)worksheet.Cells[curRow, 31].Value;
+                sum += (double)worksheet.Cells[curRow, 34].Value;
+
+                avg = sum / 3;
+                worksheet.Cells[curRow, curCol].Value = Math.Round(avg, 2);
+
+                curRow++;
+            }
+
+            //Go to the next column and back to the first row
+            curCol++;
+            curRow = 2;
+
+            //Second, print the "PP6 Long Avg" column. The PP6 vals are found in cols 29, 32, 35
+            while (curRow <= lastRow)
+            {
+                double sum = 0;
+                double avg = 0;
+
+                sum += (double)worksheet.Cells[curRow, 29].Value;
+                sum += (double)worksheet.Cells[curRow, 32].Value;
+                sum += (double)worksheet.Cells[curRow, 35].Value;
+
+                avg = sum / 3;
+                worksheet.Cells[curRow, curCol].Value = Math.Round(avg, 2);
+
+                curRow++;
+            }
+
+            //Go to the next column and back to the first row
+            curCol++;
+            curRow = 2;
+
+            //Third, print the "PP12 Long Avg" column. The PP12 vals are found in cols 30, 33, 36
+            while (curRow <= lastRow)
+            {
+                double sum = 0;
+                double avg = 0;
+
+                sum += (double)worksheet.Cells[curRow, 30].Value;
+                sum += (double)worksheet.Cells[curRow, 33].Value;
+                sum += (double)worksheet.Cells[curRow, 36].Value;
+
+                avg = sum / 3;
+                worksheet.Cells[curRow, curCol].Value = Math.Round(avg, 2);
+
+                curRow++;
+            }
+
+        }
+
+        /**
+         * Calculates and prints data for columns AS-AV (45-48) in the master file.
+         * These are the avg values of each unique time (30ms, 50ms, 80ms, 140ms) attained by grabbing the
+         * appropriate cells from the calculations done in the printSecondMasterDataGroup() method.
+         * 
+         * NOTE: This should only be called by printRatInfoToMaster() and after printSecondMasterDataGroup().
+         * 
+         * @param  worksheet  The Excel worksheet we want to print the data on
+         * @param  lastRow    The index of the last row of rat data so that we know where to stop calculating
+         */
+        public void printTimeAvgsToMaster(ExcelWorksheet worksheet, int lastRow)
+        {
+            int curRow = 2;
+            int curCol = 45;
+            double sum;
+            double avg;
+            int offset = 20;  //The # of cols we have to go back to get to the first column of the current time value.
+
+            while(curCol <= 48)
+            {
+                while(curRow <= lastRow)
+                {
+                    sum = 0;
+                    avg = 0;
+
+                    sum += (double)worksheet.Cells[curRow, curCol - offset].Value;
+                    sum += (double)worksheet.Cells[curRow, (curCol - offset) + 1].Value;
+                    sum += (double)worksheet.Cells[curRow, (curCol - offset) + 2].Value;
+
+                    avg = sum / 3;
+                    worksheet.Cells[curRow, curCol].Value = Math.Round(avg, 2);
+
+                    curRow++;
+                }
+
+                offset = offset - 2;  //The offset to the first correct time value decreases by two with each move forward in the columns since there are 3 values for each time.
+                curCol++;
+                curRow = 2;
+            }
         }
 
         /**
@@ -429,29 +624,33 @@ namespace RatStim
         {
             int curRow = 2;    //The first row with relevant data will be row 2 (The first rat)
             int curCol = 5;    //The first columns with relevant data will be column 4 (P120 before)
-            int finalCol = 22; //The final column we want to calculate date for (Col V, pp12[140ms])
+            int finalCol = 48; //The final column we want to calculate date for (Col AV [48])
 
             List<double> colVals = new List<double>();
             //Walk down the columns and gather the data
             while(curCol <= finalCol)
             {
-                int rowsProcessed = 0;
-                while (rowsProcessed < ratIds.Count)
+                //First, make sure it isn't an empty column
+                if (null != worksheet.Cells[curRow, curCol].Value)
                 {
-                    colVals.Add((double)worksheet.Cells[curRow, curCol].Value);
-                    rowsProcessed++;
-                    curRow++;
-                }
+                    int rowsProcessed = 0;
+                    while (rowsProcessed < ratIds.Count)
+                    {
+                        colVals.Add((double)worksheet.Cells[curRow, curCol].Value);
+                        rowsProcessed++;
+                        curRow++;
+                    }
 
-                //Print the values for this column
-                double stdDev = calcStdDev(colVals);
-                worksheet.Cells[curRow, curCol].Value = Math.Round(colVals.Average(), 2);              //The average
-                curRow++;
-                worksheet.Cells[curRow, curCol].Value = Math.Round(stdDev, 2);                         //The std deviation
-                curRow++;
-                worksheet.Cells[curRow, curCol].Value = Math.Round(calcStdError(colVals, stdDev), 2);  //The stadard error
-                curRow++;
-                worksheet.Cells[curRow, curCol].Value = colVals.Count;                                 //The count
+                    //Print the values for this column
+                    double stdDev = calcStdDev(colVals);
+                    worksheet.Cells[curRow, curCol].Value = Math.Round(colVals.Average(), 2);              //The average
+                    curRow++;
+                    worksheet.Cells[curRow, curCol].Value = Math.Round(stdDev, 2);                         //The std deviation
+                    curRow++;
+                    worksheet.Cells[curRow, curCol].Value = Math.Round(calcStdError(colVals, stdDev), 2);  //The stadard error
+                    curRow++;
+                    worksheet.Cells[curRow, curCol].Value = colVals.Count;                                 //The count
+                }
 
                 curRow = 2;      //Reset to the first row.
                 colVals.Clear(); //Clear the column list
@@ -537,7 +736,7 @@ namespace RatStim
             worksheet.Cells["AJ1"].Value = "pp12 (140ms)";
             worksheet.Cells["AK1"].Value = "PPI long";
             worksheet.Cells["AL1"].Value = "PPI short";
-            worksheet.Column(37).Style.Font.Color.SetColor(Color.Red); //Set PPI Long col to be red
+            worksheet.Column(37).Style.Font.Color.SetColor(Color.Firebrick); //Set PPI Long col to be red
 
             //THEN LEAVE COLUMNS 39 (AM) and 40 (AN) BLANK
 
