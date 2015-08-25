@@ -17,7 +17,7 @@ predetermined rat ID/stimulus layout) and sorts them according to rat ID and
 stimulus value. The average values for each stimulus across all input files are
 output to a 'Master' Excel file, and the individual sorted entries are kept
 in an 'Intermediate' Excel file. This allows data to be examined at a higher
-level in the 'Master' file, while still allowing closr analysis of the organized
+level in the 'Master' file, while still allowing closer analysis of the organized
 data in the 'Intermediate' file.
 
 --------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ Requirements:
 
 -To install and run successfully, the RatStim Data Parser application requires
 .NET framework 3.5 or higher. All versions of Windows from XP onwards should
-have this installed by deafult. If the installation fails, try to download and 
+have this installed by default. If the installation fails, try to download and 
 install .NET here: http://www.microsoft.com/net/downloads. If the newest .NET 
 version is not compatible with your current Windows operating system, try 
 chosing an older .NET version from the 'Earlier .NET Versions' tab.
